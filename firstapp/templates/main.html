@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>주류 마케팅 이미지 생성기</title>
+</head>
+<body>
+    <h1>📸 주류 마케팅 이미지 생성기</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <label>📷 주류 이미지 업로드:</label><br>
+        <input type="file" name="image" required><br><br>
+
+        <label>🎨 테마 선택:</label><br>
+        <select name="theme">
+            <option value="해변">해변</option>
+            <option value="바">바</option>
+            <option value="집">집</option>
+            <option value="포장마차">포장마차</option>
+            <option value="식당">식당</option>
+        </select><br><br>
+
+        <label>🌈 분위기 선택:</label><br>
+        <select name="mood">
+            <option value="따듯한">따듯한</option>
+            <option value="차가운">차가운</option>
+            <option value="신나는">신나는</option>
+            <option value="세련된">세련된</option>
+            <option value="아련한">아련한</option>
+        </select><br><br>
+
+        <label>📍 위치 설정:</label><br>
+        <select name="placement">
+            <option value="테이블 위에 놓인">테이블 위</option>
+            <option value="사람이 들고 있는">사람 손</option>
+            <option value="바에 진열되어 있는는">바에 진열</option>
+        </select><br><br>
+
+        <label>🖼 비율 설정:</label><br>
+        <select name="aspect_ratio">
+            <option value="1:1">1:1</option>
+            <option value="3:4">3:4</option>
+            <option value="4:3">4:3</option>
+            <option value="9:16">9:16</option>
+            <option value="16:9" selected>16:9</option>
+        </select><br><br>
+
+        <label>🖨 생성 이미지 수량 (1~10):</label><br>
+        <input type="number" name="count" min="1" max="10" value="4"><br><br>
+
+        <label>🧠 추가 사용자 프롬프트:</label><br>
+        <input type="text" name="prompt" size="80" placeholder="예: 한국인 커플, 술에 취한, 광란의, 평온한"><br><br>
+
+        <button type="submit">✨ 이미지 생성</button>
+    </form>
+
+    <hr>
+
+    {% if image_urls %}
+        <h2>🖼 생성된 이미지 ({{ image_urls|length }}장)</h2>
+        {% for url in image_urls %}
+            <img src="{{ url }}" width="512"><br><br>
+            <a href="{{ url.image }}" download>
+                <button>📥 이미지 다운로드</button>
+            </a><br><br>
+        {% endfor %}
+    {% endif %}
+
+
+
+    {% if word_urls %}
+    <h2>🗯 생성된 추천 문구 ({{ word_urls|length }}개)</h2>
+    {% for sentence in word_urls %}
+        <p>📢 {{ sentence }}</p><br>
+    {% endfor %}
+{% endif %}
+</body>
+</html>
