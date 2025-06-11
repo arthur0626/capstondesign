@@ -1,0 +1,522 @@
+:root {
+    font-size: 16px; /* 1rem = 16px */
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    overflow: hidden;
+    font-size: 1rem;
+}
+
+.container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* 사이드바 */
+.sidebar {
+    width: 250px;
+    background-color: #333;
+    color: white;
+    transform: translateX(-250px);
+    transition: transform 0.3s ease-in-out;
+    position: fixed;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+}
+
+.sidebar.active {
+    transform: translateX(0);
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+}
+
+.sidebar-menu-item {
+    background: none;
+    border: none;
+    color: white;
+    padding: 15px 20px;
+    text-align: left;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sidebar-menu-item:hover {
+    background-color: #555;
+}
+
+/* 메인 콘텐츠 영역 */
+.main-content {
+    flex-grow: 1;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-y: auto;
+    align-items: center;
+}
+
+/* 사이드바 토글 버튼 */
+.sidebar-toggle-btn {
+    background-color: #FFD700;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.bar {
+    width: 25px;
+    height: 3px;
+    background-color: #333;
+    border-radius: 2px;
+}
+
+/* 콘텐츠 영역 */
+.content-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    padding-top: 70px;
+}
+
+/* 이미지 첨부 전 화면 */
+.upload-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.upload-section:not(.active) {
+    display: none;
+}
+
+.upload-button {
+    background-color: #FFD700;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.upload-button:hover {
+    background-color: #e0c200;
+    transform: translateY(-2px);
+}
+
+.file-name {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #666;
+    height: 1.2em;
+}
+
+.upload-info {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 5px;
+}
+
+/* 이미지 첨부 후 옵션 선택 화면 - 메인 Grid 컨테이너 */
+.options-section {
+    display: grid;
+    /* 3개의 열 정의: 좌측 이미지 패널(고정), 중앙 옵션 패널(유연), 우측 버튼 패널(고정) */
+    grid-template-columns: 180px 1fr 180px;
+    /* 1개의 행 정의: 모든 내용이 이 행에 들어감 */
+    grid-template-rows: auto;
+    /* 각 영역에 이름 부여 */
+    grid-template-areas: "image-panel options-panel button-panel";
+    gap: 30px; /* 열 간 간격 */
+    width: 95%;
+    max-width: 1400px; /* 전체 최대 너비 */
+    padding: 20px;
+    box-sizing: border-box;
+    align-items: center; /* <<< !!! 핵심: 그리드 아이템들을 세로 중앙에 정렬 !!! >>> */
+}
+
+.options-section:not(.active) {
+    display: none;
+}
+
+/* 좌측 이미지 첨부 영역 */
+.left-image-panel {
+    grid-area: image-panel; /* 그리드 영역 지정 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0; /* 축소 방지 */
+    width: 100%; /* 그리드 셀의 너비를 꽉 채움 */
+}
+
+.image-preview-after {
+    width: 150px;
+    height: 100px;
+    border: 1px solid #ddd;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: 10px;
+}
+
+.image-preview-after::before {
+    content: "이미지 미리보기";
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.image-preview-after.has-image::before {
+    content: none;
+}
+
+.upload-button-small {
+    background-color: #FFD700; /* generate-button과 동일 */
+    border: none;
+    padding: 15px 40px; /* generate-button과 동일 */
+    border-radius: 25px; /* generate-button과 동일 */
+    font-size: 1.3rem; /* generate-button과 동일 */
+    font-weight: bold; /* generate-button과 동일 */
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* generate-button과 동일 */
+    transition: background-color 0.2s, transform 0.2s; /* generate-button과 동일 */
+    white-space: nowrap; /* generate-button과 동일 */
+    min-width: 150px; /* generate-button과 동일 (필요 시 조정) */
+    margin-top: 5px; /* 이전에 있던 여백 유지 */
+}
+
+.file-name-after {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 5px;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* 중앙 옵션 박스 그룹 */
+.center-options-panel {
+    grid-area: options-panel; /* 그리드 영역 지정 */
+    display: flex;
+    flex-direction: column; /* 내부 행들을 세로로 쌓음 */
+    flex-grow: 1; /* 남은 공간을 최대한 채움 (grid-template-columns에서 1fr로 이미 처리) */
+    gap: 20px; /* 옵션 행 간 간격 */
+    min-width: 450px; /* 이 패널의 최소 너비 설정 (2개 박스 너비 기준) */
+}
+
+.option-row {
+    display: flex;
+    flex-direction: row; /* 옵션 박스들을 가로로 배치 */
+    gap: 20px; /* 박스들 간의 간격 */
+    width: 100%;
+    flex-wrap: wrap; /* 공간 부족 시 다음 줄로 */
+    justify-content: flex-start; /* 좌측 정렬 */
+}
+
+.option-box {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    flex-grow: 1; /* 남은 공간을 유연하게 차지 */
+    flex-basis: calc(50% - 10px); /* 2개씩 배치 (50% - gap/2) */
+    min-width: 200px; /* 개별 박스의 최소 너비 */
+}
+
+/* 추가 요구사항 박스 (option-box와 동일하게 flex-basis로 처리) */
+.additional-requirements {
+    flex-basis: 100%; /* 이 박스는 항상 한 줄 전체를 차지 */
+}
+
+.option-box h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.option-box label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.option-box input::before {
+    content: "";
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.option-box input:checked::before {
+    background-color: #FFD700;
+    border-color: #FFD700;
+    background-clip: content-box;
+    padding: 0.2rem;
+}
+
+.option-box input {
+    appearance: none;
+    margin: 0;
+}
+
+.option-box select {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.95rem;
+    margin-top: 5px;
+}
+
+
+#additionalReqFields {
+    width: 100%;
+}
+
+.add-req-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.add-req-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.add-req-btn:hover {
+    background-color: #218838;
+}
+
+.req-field-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.req-field-group input::placeholder {
+    font-size: 0.9rem;
+}
+
+.req-field-group input {
+    flex-grow: 1;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
+.delete-req-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.delete-req-btn:hover {
+    background-color: #c82333;
+}
+
+/* 우측 이미지 생성 버튼 영역 */
+.right-generate-button-panel {
+    grid-area: button-panel; /* 그리드 영역 지정 */
+    display: flex;
+    flex-direction: column; /* 내부 요소를 수직으로 정렬 (버튼 하나뿐이지만) */
+    justify-content: center; /* <<< !!! 핵심: 이 패널 안의 요소를 세로 중앙에 정렬 !!! >>> */
+    align-items: center; /* 이 패널 안의 요소를 가운데 정렬 */
+    width: 100%; /* 그리드 셀의 너비를 꽉 채움 */
+}
+
+.generate-button {
+    background-color: #FFD700;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 25px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: background-color 0.2s, transform 0.2s;
+    white-space: nowrap;
+}
+
+.generate-button:hover {
+    background-color: #e0c200;
+    transform: translateY(-3px);
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    justify-items: center;
+    margin-top: 40px;
+}
+
+.image-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.image-box {
+    width: 300px;
+    height: 300px;
+    background-color: #f4f4f4;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.download-btn {
+    margin-top: 12px;
+    padding: 8px 16px;
+    background-color: #ffd400;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+.recommend-texts {
+    text-align: center;
+    margin-top: 40px;
+}
+.recommend-texts p {
+    margin: 8px 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+    .options-section {
+        /* 1200px 미만에서는 세로로 쌓이도록 */
+        grid-template-columns: 1fr; /* 단일 컬럼 */
+        grid-template-rows: auto auto auto; /* 이미지, 옵션, 버튼 순서로 */
+        grid-template-areas:
+            "image-panel"
+            "options-panel"
+            "button-panel";
+        justify-items: center; /* 그리드 아이템들을 가운데 정렬 */
+        align-items: start; /* 각 아이템 내부의 세로 정렬은 각 패널에서 처리 */
+        max-width: 600px; /* 세로 정렬 시 최대 너비 */
+        gap: 30px; /* 세로 간격 유지 */
+    }
+
+    .left-image-panel,
+    .center-options-panel,
+    .right-generate-button-panel {
+        width: 100%;
+        max-width: 100%; /* 고정 너비 해제 */
+        flex-shrink: 1; /* 축소 허용 */
+        align-items: center; /* 내부 요소도 가운데 정렬 */
+    }
+    
+    .center-options-panel {
+        min-width: unset; /* 최소 너비 제한 해제 */
+    }
+
+    .option-row {
+        justify-content: center; /* 옵션 박스들도 가운데 정렬 */
+    }
+    
+    .option-box {
+        flex-basis: calc(50% - 10px); /* 2개씩 배치 유지 (공간이 된다면) */
+    }
+
+    .additional-requirements {
+        flex-basis: 100%; /* 추가 요구사항은 계속 100% */
+    }
+
+    .right-generate-button-panel {
+        padding-top: 0; /* 이미 상단에 여백이 없으므로 제거 */
+        justify-content: center; /* 세로 가운데 정렬 */
+    }
+}
+
+
+@media (max-width: 768px) {
+    .option-box {
+        flex-basis: 100%; /* 모바일에서 모든 박스 한 줄로 */
+    }
+}
