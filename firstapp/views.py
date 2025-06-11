@@ -34,8 +34,9 @@ def generate_images(request):
             image_number = max(1, min(int(image_number), 10))  # 1~10 범위 제한
         except ValueError:
             image_number = 4  # 기본값
-
+        
         # 프롬프트 합성
+        
         full_prompt = f"""
         Translate the following product marketing scene into natural and realistic English, without listing:
         "{mood} 분위기의 {theme}에서, 술이 {placement}에 위치한 상황입니다. {user_prompt}"
@@ -44,7 +45,8 @@ def generate_images(request):
         위 상황을 기반으로, 술 마케팅에 어울리는 간결하고 창의적인 한국어 한 줄 문장을 추천해줘.
         상황: {mood} 분위기의 {theme}에서, 술이 {placement}에 위치함. {user_prompt}
         """.strip()
-
+        
+        
         translated_prompt = client.run(
             "openai/o4-mini",
             input={
@@ -52,8 +54,8 @@ def generate_images(request):
             }
         )
         full_prompt = translated_prompt.strip() if isinstance(translated_prompt, str) else str(translated_prompt)
-
-
+        
+        
         if uploaded_file:
             file_path = default_storage.save(uploaded_file.name, uploaded_file)
             full_path = default_storage.path(file_path)
@@ -80,7 +82,7 @@ def generate_images(request):
                     )
                     word_urls.append(flatten_output(output))
 
-
+        
     
                     
     return render(request, "main.html", {
