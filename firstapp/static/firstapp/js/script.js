@@ -108,65 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('image', uploadedImageFile);
-
-        const selectedTheme = document.querySelector('input[name="theme"]:checked');
-        if (selectedTheme) {
-            formData.append('theme', selectedTheme.value);
+        const form = document.querySelector('form');
+        if (form) {
+            form.submit();
         } else {
-            alert('테마를 선택해주세요.');
-            return;
+            alert('form 오류류');
         }
-
-        const selectedMood = document.querySelector('input[name="mood"]:checked');
-        if (selectedMood) {
-            formData.append('mood', selectedMood.value);
-        } else {
-            alert('분위기를 선택해주세요.');
-            return;
-        }
-
-        const additionalRequirements = [];
-        document.querySelectorAll('#additionalReqFields input[type="text"]').forEach(input => {
-            if (input.value.trim() !== '') {
-                additionalRequirements.push(input.value.trim());
-            }
-        });
-        if (additionalRequirements.length > 0) {
-            formData.append('additionalRequirements', JSON.stringify(additionalRequirements));
-        }
-
-        const selectedProductLocation = document.querySelector('input[name="productLocation"]:checked');
-        if (selectedProductLocation) {
-            formData.append('productLocation', selectedProductLocation.value);
-        } else {
-            alert('제품 위치를 선택해주세요.');
-            return;
-        }
-
-        const imageSizeSelect = document.getElementById('imageSizeSelect');
-        formData.append('imageSize', imageSizeSelect.value);
-
-        console.log('--- 이미지 생성 요청 데이터 ---');
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-        alert('이미지 생성 요청이 콘솔에 출력되었습니다.');
-
-        /*
-        fetch('/api/generate-image', {
-            method: 'POST',
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('이미지 생성 결과:', data);
-        })
-        .catch(error => {
-            console.error('이미지 생성 오류:', error);
-            alert('이미지 생성 중 오류가 발생했습니다.');
-        });
-        */
     });
 });
