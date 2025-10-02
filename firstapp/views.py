@@ -27,6 +27,8 @@ def generate_images(request):
         user_prompt = request.POST.get("prompt", "")
         aspect_ratio = request.POST.get("aspect_ratio", "16:9")
         image_number = request.POST.get("count", "4")
+        # 추가(김현준)
+        model_choice = (request.POST.get("model", "flux") or "flux").lower()  # "flux" | "nanobanana"
         uploaded_file = request.FILES.get("image")
 
         # 안전하게 정수 변환
@@ -58,16 +60,29 @@ def generate_images(request):
             file_path = default_storage.save(uploaded_file.name, uploaded_file)
             full_path = default_storage.path(file_path)
 
+
+            # 모델 추가
             for _ in range(image_number):
                 with open(full_path, "rb") as f:
-                    output = client.run(
-                        "black-forest-labs/flux-kontext-pro",
-                        input={
-                            "prompt": full_prompt,
-                            "input_image": f,
-                            "aspect_ratio": aspect_ratio,
-                        }
-                    )
+                    if model_choice == "nanobanana":
+                        output = client.run(
+                            "google/nano-banana",
+                            input={
+                                "prompt": full_prompt,
+                                "image_input": [f],  # 핵심: 리스트 형태
+                                "output_format": "jpg"
+                            }
+                        )
+                    else:
+                        # 기본: Flux-Kontext-Pro (기존 코드)
+                        output = client.run(
+                            "black-forest-labs/flux-kontext-pro",
+                            input={
+                                "prompt": full_prompt,
+                                "input_image": f,
+                                "aspect_ratio": aspect_ratio,
+                            }
+                        )
                     image_urls.append(output)
 
             with open(full_path, "rb") as f:
