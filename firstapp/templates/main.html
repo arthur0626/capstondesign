@@ -5,6 +5,19 @@
     <title>주류 마케팅 이미지 생성기</title>
 </head>
 <body>
+    <div style="text-align: right; padding: 10px;">
+        {% if user.is_authenticated %}
+            <span>환영합니다, {{ user.username }} 님!</span>
+            <a href="{% url 'profile' %}"><button>프로필</button></a>
+            <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit">로그아웃</button>
+            </form>
+        {% else %}
+            <a href="{% url 'signup' %}"><button>회원가입</button></a>
+            <a href="{% url 'login' %}"><button>로그인</button></a>
+        {% endif %}
+    </div>
     <h1>📸 주류 마케팅 이미지 생성기</h1>
 
     <form method="post" enctype="multipart/form-data">
@@ -62,7 +75,7 @@
         <h2>🖼 생성된 이미지 ({{ image_urls|length }}장)</h2>
         {% for url in image_urls %}
             <img src="{{ url }}" width="512"><br><br>
-            <a href="{{ url.image }}" download>
+            <a href="{{ url }}" download>
                 <button>📥 이미지 다운로드</button>
             </a><br><br>
         {% endfor %}

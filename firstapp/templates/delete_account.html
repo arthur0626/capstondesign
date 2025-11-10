@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 탈퇴</title>
+</head>
+<body>
+    <h1>정말로 탈퇴하시겠습니까?</h1>
+    <p>계정을 삭제하면 모든 데이터(생성한 이미지 포함)가 영구적으로 삭제되며 복구할 수 없습니다.</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">예, 탈퇴합니다.</button>
+        <a href="{% url 'profile' %}"><button type="button">아니요, 취소합니다.</button></a>
+    </form>
+</body>
+</html>

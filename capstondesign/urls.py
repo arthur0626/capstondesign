@@ -17,8 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from firstapp import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.generate_images, name='main'),
+    # 로그인/로그아웃/회원가입
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('signup/', views.signup, name='signup'),
+    
+    # --- (여기 2줄을 추가합니다) ---
+    path('profile/', views.profile, name='profile'),
+    path('delete_account/', views.delete_account, name='delete_account'),
+    path('profile/<int:user_id>/', views.view_user_profile, name='view_user'),
 ]

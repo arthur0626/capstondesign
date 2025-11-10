@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ user.username }}님의 프로필</title>
+</head>
+<body>
+    <div style="text-align: right; padding: 10px;">
+        ...
+    </div>
+
+    {% if is_admin %}
+        <h1>👑 관리자 페이지</h1>
+        <h3>모든 유저 목록</h3>
+        <hr>
+        {% for u in all_users %}
+            <div>
+                <p>
+                    <strong>{{ u.username }}</strong> ({{ u.email }})
+                    <a href="{% url 'view_user' u.id %}">
+                        <button>이미지 목록 보기</button>
+                    </a>
+                </p>
+            </div>
+        {% empty %}
+            <p>자신 외에 다른 유저가 없습니다.</p>
+        {% endfor %}
+
+    {% else %}
+        <h1>🖼 {{ user.username }} 님이 생성한 이미지</h1>
+        <hr>
+        {% for image in images %}
+            <div>
+                <img src="{{ image.image_url }}" width="256">
+                <p><strong>프롬프트:</strong> {{ image.prompt }}</p>
+                <p><strong>생성일:</strong> {{ image.created_at }}</p>
+            </div>
+            <hr>
+        {% empty %}
+            <p>아직 생성한 이미지가 없습니다.</p>
+        {% endfor %}
+    {% endif %}
+
+    <hr>
+    <a href="{% url 'delete_account' %}">
+        <button style="background-color: #dc3545; color: white;">내 계정 탈퇴하기</button>
+    </a>
+</body>
+</html>
