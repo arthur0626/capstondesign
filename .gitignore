@@ -1,3 +1,4 @@
+.env
 capstondesign/.env
 myvenv/
 db.sqlite3

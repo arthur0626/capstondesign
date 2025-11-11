@@ -74,6 +74,11 @@ def flatten_output(output):
         return output.replace("\n", " ").strip()
     return str(output).strip()
 
+def flatten_output2(o):
+    if isinstance(o, list):
+        return ''.join(s for s in o if s).strip()
+    return (o or '').strip()
+
 def generate_images(request):
     image_urls = []
     word_urls = []
@@ -87,6 +92,7 @@ def generate_images(request):
         aspect_ratio = request.POST.get("aspect_ratio", "16:9")
         image_number = request.POST.get("count", "4")
         uploaded_file = request.FILES.get("image")
+        model_choice = request.POST.get("model", "flux").lower()
 
         # 안전하게 정수 변환
         try:
@@ -110,8 +116,8 @@ def generate_images(request):
                 "prompt": full_prompt,
             }
         )
-        full_prompt = translated_prompt.strip() if isinstance(translated_prompt, str) else str(translated_prompt)
 
+        full_prompt = flatten_output2(translated_prompt)
 
         if uploaded_file:
             file_path = default_storage.save(uploaded_file.name, uploaded_file)
@@ -120,14 +126,37 @@ def generate_images(request):
             with open(full_path, "rb") as f:
                 # 1. 이미지 생성
                 for _ in range(image_number):
-                    output = client.run(
-                        "black-forest-labs/flux-kontext-pro",
-                        input={
-                            "prompt": full_prompt,
-                            "input_image": f,
-                            "aspect_ratio": aspect_ratio,
-                        }
-                    )
+                    if model_choice == "flux":
+                        output = client.run(
+                            "black-forest-labs/flux-kontext-pro",
+                            input={
+                                "prompt": full_prompt,
+                                "input_image": f,
+                                "aspect_ratio": aspect_ratio,
+                            }
+                        )
+                    elif model_choice == "alcohol_beach":
+                        output0 = replicate.run(
+                            "clipnpaper/alcohol_beach:5c3ef136e48fd434e8fa47c9deaad6d12527a61757305ca01169e58fc5b19ef5",
+                            input={
+                                "model": "dev",
+                                "input_image": f,
+                                "prompt": full_prompt + "alcohol_beach",
+                                "go_fast": False,
+                                "lora_scale": 1,
+                                "megapixels": "1",
+                                "num_outputs": 1,
+                                "aspect_ratio": aspect_ratio,
+                                "output_format": "png",
+                                "guidance_scale": 3,
+                                "output_quality": 80,
+                                "prompt_strength": 0.8,
+                                "extra_lora_scale": 1,
+                                "num_inference_steps": 28
+                            }
+                        )
+                        output = output0[0]
+
                     generated_url = None
                     if isinstance(output, list) and output:
                         generated_url = output[0]
