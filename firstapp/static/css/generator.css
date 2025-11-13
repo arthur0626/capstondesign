@@ -1,0 +1,225 @@
+/* generator.css
+  이미지 생성기 페이지 전용 스타일
+*/
+
+/* 폼 기본 설정 */
+.generator-form {
+    width: 100%;
+    /* main-content의 높이가 100vh라고 가정.
+      calc(100vh - 40px)는 main-content의 padding(20px*2)을 제외한 높이입니다.
+      페이지가 스크롤되는 것을 방지합니다.
+    */
+    height: calc(100vh - 40px); 
+    max-height: 900px; /* 최대 높이 제한 */
+}
+
+/* 2단 레이아웃 컨테이너 */
+.generator-container {
+    display: flex;
+    gap: 30px; /* 두 컬럼 사이의 간격 */
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+}
+
+/* 1. 왼쪽: 업로드 컬럼 */
+.upload-column {
+    width: 400px; /* ⬅️ 원하는 너비(예: 500px)로 고정합니다. */
+    height: 450px;
+    flex-shrink: 0; /* ⬅️ 창 크기가 줄어도 이 컬럼은 줄어들지 않습니다. */
+    
+    display: flex;
+    align-self: center;
+}
+
+/* 파일 입력창 숨기기 */
+#file-upload {
+    display: none;
+}
+
+/* 커스텀 파일 업로드 박스 (와이어프레임의 왼쪽 카드) */
+.upload-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px; /* 와이어프레임의 둥근 모서리 */
+    background-color: #ffffff; /* 흰색 배경 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    padding: 20px;
+    text-align: center;
+    color: #888;
+    overflow: hidden; /* 이미지가 튀어나가지 않도록 */
+}
+.upload-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+.upload-box.dragover {
+    background-color: #f0f4f9;
+}
+
+/* 업로드 프롬프트 */
+#upload-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.upload-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+.upload-icon-box {
+    width: 300px; /* 와이어프레임의 회색 박스 */
+    height: 300px;
+    background-color: #f0f0f0;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+.upload-icon-text {
+    color: #aaa;
+    font-weight: 500;
+}
+
+
+/* 미리보기 이미지 */
+#image-preview {
+    max-width: 100%;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* 이미지가 잘리지 않고 비율 유지 */
+    border-radius: 10px;
+}
+
+/* 2. 오른쪽: 설정 컬럼 */
+.settings-column {
+    width: 800px; /* ⬅️ flex: 1 대신 고정 너비 지정 */
+    flex-shrink: 0;
+    display: flex;
+    min-width: 0;
+    align-self: center;
+}
+
+/* 설정 항목 카드 (와이어프레임의 오른쪽 카드) */
+.settings-card {
+    flex: 1;
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* 항목이 많아지면 스크롤 */
+}
+
+/* 폼 필드 그리드 */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2열 그리드 */
+    gap: 15px 20px; /* 세로 간격, 가로 간격 */
+    width: 100%;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* [신규] 2칸 모두 차지하는 클래스 */
+.form-group.span-2 {
+    grid-column: span 2;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 0.9rem; /* 14px */
+    color: #333;
+    margin-bottom: 8px;
+}
+
+/* 폼 입력 요소 스타일 (input, select, textarea) */
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    min-height: 48px; /* 최소 높이 고정 */
+    padding: 10px 12px;
+    border: none;
+    background-color: #f0f0f0; /* 와이어프레임의 회색 배경 */
+    border-radius: 10px;
+    font-size: 0.95rem;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+    transition: box-shadow 0.2s ease;
+    font-family: inherit; /* 폰트 상속 */
+}
+
+/* [신규] Textarea 스타일 */
+.form-group textarea {
+    padding-top: 12px;
+    resize: vertical; /* 세로 크기만 조절 가능 */
+    min-height: 80px;
+}
+
+
+.form-group select {
+    /* 커스텀 화살표 */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 1em;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 30px; /* 화살표 공간 확보 */
+}
+
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.3);
+}
+
+
+/* 생성 버튼 래퍼 */
+.submit-btn-wrapper {
+    margin-top: auto; /* 버튼을 카드 하단으로 밀어냄 */
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    padding-top: 20px; /* 폼 요소들과의 간격 */
+}
+
+/* 생성 버튼 (재생 버튼) */
+.generate-btn {
+    width: 65px; 
+    height: 65px;
+    border-radius: 50%; /* 원형 버튼 */
+    background-color: #333; /* 와이어프레임의 어두운 색 */
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.generate-btn:hover {
+    background-color: #000;
+    transform: scale(1.05);
+}
+.generate-btn span {
+    margin-left: 4px; /* 재생 아이콘 정렬 미세 조정 */
+}

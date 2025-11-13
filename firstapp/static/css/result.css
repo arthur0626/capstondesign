@@ -1,0 +1,176 @@
+/* results.css
+  결과 페이지 전용 스타일
+*/
+
+.results-container {
+    width: 100%;
+    height: calc(100vh - 80px); /* main-content 패딩 제외 높이 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.results-card {
+    width: 100%;
+    max-width: 1000px; /* 카드 최대 너비 */
+    height: 100%;
+    max-height: 700px; /* 카드 최대 높이 */
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    padding: 30px 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.results-card h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 30px;
+    flex: 1; /* 남은 공간을 차지 */
+    min-height: 0; /* flex 자식 요소의 높이 축소 문제 방지 */
+}
+
+/* 1. 갤러리 컬럼 */
+.gallery-column {
+    flex: 2; /* 2:1 비율 */
+    display: flex;
+    flex-direction: column;
+}
+
+.main-image-wrapper {
+    flex: 1; /* 남은 공간 차지 */
+    background-color: #f0f0f0;
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    position: relative;
+}
+
+#main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* 이미지 비율 유지 */
+}
+
+.thumbnail-wrapper {
+    position: absolute;
+    bottom: 20px; /* 하단에서 20px 띄움 */
+    left: 20px;   /* 왼쪽에서 20px 띄움 */
+    z-index: 10; /* 메인 이미지보다 위에 보이도록 */
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    align-items: center;
+}
+
+.thumbnail {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid transparent;
+    opacity: 0.6; /* 기본 불투명도 */
+    transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.thumbnail:hover,
+.thumbnail.active {
+    opacity: 1.0; /* 활성/호버 시 선명하게 */
+    border-color: #007bff;
+}
+
+.download-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    color: #555;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    margin-left: auto; /* 오른쪽 끝으로 밀기 */
+    transition: background-color 0.2s ease;
+}
+.download-btn:hover {
+    background-color: #e0e0e0;
+}
+
+/* 2. 추천 문구 컬럼 */
+.recommend-column {
+    flex: 1; /* 2:1 비율 */
+    display: flex;
+    flex-direction: column;
+}
+
+.recommend-column h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.recommend-list {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px 20px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.recommend-list p {
+    margin: 0 0 10px 0;
+    line-height: 1.6;
+}
+.recommend-list p:last-child {
+    margin-bottom: 0;
+}
+
+/* 3. 하단 액션 버튼 */
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px; /* 상단 컨텐츠와의 간격 */
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.action-btn {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    color: #333;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.action-btn:hover {
+    background-color: #e0e0e0;
+    transform: scale(1.05);
+}
+.action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.action-btn .icon-undo {
+    font-size: 22px;
+}

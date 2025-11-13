@@ -1,0 +1,170 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
+    line-height: 1.6;
+}
+
+.section-hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 400px;
+    background-image: url('https://via.placeholder.com/1500x400/333333/FFFFFF?text=Blurry+Background+Image'); /* 배경 이미지 */
+    background-size: cover;
+    background-position: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.section-hero h1 {
+    font-size: 2.5rem;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-button {
+    margin-top: 20px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: white;
+    color: black;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.hero-button:hover {
+    background-color: #f0f0f0;
+}
+
+/* --- 3. 소개 및 3단계 프로세스 --- */
+.section-intro, .section-process {
+    max-width: 900px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.section-intro p {
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.section-process h2 {
+    font-size: 2rem;
+    margin-bottom: 40px;
+}
+
+.process-list {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.process-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    text-align: left;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.process-image-placeholder {
+    width: 150px;
+    height: 150px;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #888;
+    flex-shrink: 0;
+}
+
+.process-text h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+}
+
+/* --- 4. 무한 스크롤 (Marquee) 섹션 --- */
+.marquee-section {
+    width: 100%;
+    overflow: hidden; /* 중요: 트랙 밖으로 나가는 이미지 숨김 */
+    position: relative; /* 중앙 텍스트 배치를 위함 */
+    padding: 40px 0;
+    justify-content: center;
+    background-color: #fff;
+}
+
+.marquee-heading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #111;
+    text-align: center;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    width: 80%;
+}
+
+.marquee-track {
+    display: flex;
+    justify-content: center;
+    width: 100%; /* 자식 요소들의 총 너비만큼 늘어남 */
+    flex-shrink: 0;
+    margin: 10px 0;
+}
+
+/* 애니메이션 정의 */
+@keyframes scroll-rtl {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); } /* 트랙 너비의 50%만큼 왼쪽으로 이동 */
+}
+
+@keyframes scroll-ltr {
+    0% { transform: translateX(-50%); } /* 시작 위치가 다름 */
+    100% { transform: translateX(0); }
+}
+
+/* 애니메이션 적용 */
+.track-rtl {
+    animation: scroll-rtl 40s linear infinite;
+}
+
+.track-ltr {
+    animation: scroll-ltr 40s linear infinite;
+}
+
+/* 마우스 올리면 멈춤 (선택 사항) */
+.marquee-section:hover .marquee-track {
+    animation-play-state: paused;
+}
+
+.marquee-item {
+    width: 250px; /* 이미지 너비 */
+    height: 180px; /* 이미지 높이 */
+    margin: 0 10px;
+    flex-shrink: 0;
+}
+
+.marquee-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
