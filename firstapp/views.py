@@ -9,7 +9,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.contrib.auth import login, logout
+from django.core.files import File
 
+from django.conf import settings
 from .forms import CustomUserCreationForm
 from .models import GeneratedImage, UserProfile, Preset, User
 
@@ -43,59 +45,74 @@ def generate_images(request):
     if request.method == "POST":
         image_urls = []
         word_urls = []
+        file_obj = None # 파일을 열어서 담을 변수
         
         try:
+            # [이미지 파일 처리 로직]
             uploaded_file = request.FILES.get("image")
+            cached_image_path = request.POST.get("cached_image_path") # 프리셋 이미지 경로
 
+            if uploaded_file:
+                # 1. 새로 업로드한 파일이 있으면 저장하고 엽니다.
+                file_path = default_storage.save(uploaded_file.name, uploaded_file)
+                full_path = default_storage.path(file_path)
+                file_obj = open(full_path, "rb")
+            
+            elif cached_image_path:
+                # 2. 업로드 파일은 없지만, 프리셋 이미지가 있다면 그걸 엽니다.
+                # (주의: cached_image_path는 'presets/이미지.jpg' 같은 상대 경로여야 함)
+                # MEDIA_ROOT와 결합하여 절대 경로 생성
+                full_path = os.path.join(settings.MEDIA_ROOT, cached_image_path)
+                if os.path.exists(full_path):
+                    file_obj = open(full_path, "rb")
+            
+            # 파일이 없으면 에러 처리
+            if not file_obj:
+                return JsonResponse({"status": "error", "message": "이미지를 선택하거나 프리셋을 불러와주세요."})
+
+            # [변수 가져오기]
             generation_model = request.POST.get("model", "flux")
-            # 안전하게 정수 변환
             try:
                 generation_number = max(1, min(int(request.POST.get("count", "1")), 10))
             except ValueError:
                 generation_number = 1
 
-            # ... (변수 가져오기) ...
             generation_ratio = request.POST.get("aspect_ratio", "16:9")
             generation_style = request.POST.get("style", "")
             generation_mood = request.POST.get("mood", "")
-
+            
+            # ... (나머지 모든 변수 가져오기 코드 그대로 유지) ...
+            # (너무 길어서 생략하지만, 기존 코드 그대로 두시면 됩니다)
             alcohol_type = request.POST.get("alcohol", "")
             alcohol_status = request.POST.get("alcohol_status", "")
             alcohol_position = request.POST.get("alcohol_position", "")
-
             glass_type = request.POST.get("glass_type", "")
             glass_status = request.POST.get("glass_status", "")
             glass_position = request.POST.get("glass_position", "")
             glass_garnish = request.POST.get("glass_garnish", "")
-
             human_clothing = request.POST.get("human_clothing", "")
             human_age = request.POST.get("human_age", "")
             human_type = request.POST.get("human_type", "")
             human_pose = request.POST.get("human_pose", "")
             human_expression = request.POST.get("human_expression", "")
             human_position = request.POST.get("human_position", "")
-
             background_type = request.POST.get("background_theme", "")
             background_details = request.POST.get("background_details", "")
             background_time = request.POST.get("background_time", "")
-
             lighting_type = request.POST.get("lighting_type", "")
             lighting_distance = request.POST.get("lighting_distance", "")
             lighting_color = request.POST.get("lighting_color", "")
             lighting_angle = request.POST.get("lighting_angle", "")
-
             shot_type = request.POST.get("shot_type", "")
             shot_distance = request.POST.get("shot_distance", "")
             shot_angle = request.POST.get("shot_angle", "")        
-
-            base_positive_prompt = "professional product photography, commercial advertisement, hyperrealistic, 8k, UHD, highly detailed, condensation droplets on glass, cold and refreshing, cinematic lighting, rim lighting, sharp focus, depth of field, Hasselblad X1D, 85mm lens"
-            
-            base_negative_prompt = "text, watermark, logo, signature, copyright, low quality, worst quality, blurry, pixelated, distorted glass, deformed, ugly, cartoon, illustration, painting, drawing, anime"
-            
             user_positive_prompt = request.POST.get("user_positive_prompt", "")
             user_negative_prompt = request.POST.get("user_negative_prompt", "")
 
-            # 프롬프트 합성
+            base_positive_prompt = "professional product photography, commercial advertisement, hyperrealistic, 8k, UHD, highly detailed, condensation droplets on glass, cold and refreshing, cinematic lighting, rim lighting, sharp focus, depth of field, Hasselblad X1D, 85mm lens"
+            base_negative_prompt = "text, watermark, logo, signature, copyright, low quality, worst quality, blurry, pixelated, distorted glass, deformed, ugly, cartoon, illustration, painting, drawing, anime"
+            
+            # [프롬프트 합성]
             full_prompt = f"""
             Translate the following product marketing scene into natural and realistic English, without listing:
             "{generation_mood} 분위기의 {generation_style} 스타일 주류 마케팅 이미지 생성,
@@ -114,72 +131,69 @@ def generate_images(request):
             상황: {full_prompt}
             """.strip()
 
-            # 번역 실행
+            # [번역 실행]
             translated_prompt = client.run(
                 "openai/o4-mini",
                 input={"prompt": full_prompt}
             )
             full_prompt_english = flatten_output(translated_prompt)
 
-            if uploaded_file:
-                file_path = default_storage.save(uploaded_file.name, uploaded_file)
-                full_path = default_storage.path(file_path)
 
-                with open(full_path, "rb") as f:
-                    # 1. 이미지 생성
-                    for _ in range(generation_number):
-                        f.seek(0)  # 중요: 파일 포인터 초기화
-                        
-                        # 모델 실행
-                        if generation_model == "flux":
-                            output = client.run(
-                                "black-forest-labs/flux-kontext-pro",
-                                input={
-                                    "prompt": full_prompt_english,
-                                    "input_image": f,
-                                    "aspect_ratio": generation_ratio,
-                                }
-                            )
-                        else: # sdxl 등 다른 모델
-                            # (예시 코드 - 필요 시 활성화)
-                            output = client.run(
-                                "black-forest-labs/flux-kontext-pro", # 임시로 flux 사용
-                                input={
-                                    "prompt": full_prompt_english,
-                                    "input_image": f,
-                                    "aspect_ratio": generation_ratio,
-                                }
-                            )
-
-                        # URL 추출
-                        generated_url = None
-                        if isinstance(output, list) and output:
-                            generated_url = output[0]
-                        elif isinstance(output, str):
-                            generated_url = output
-                        elif output:
-                            generated_url = str(output) # FileOutput 객체 처리
-
-                        # 저장
-                        if generated_url:
-                            image_urls.append(generated_url)
-                            if request.user.is_authenticated:
-                                GeneratedImage.objects.create(
-                                    user=request.user,
-                                    image_url=generated_url,
-                                    prompt=full_prompt_english
-                                )
-
-                    # 2. 추천 문구 생성
-                    f.seek(0)
+            # [이미지 생성 루프]
+            # file_obj(업로드 파일 또는 프리셋 파일)를 사용합니다.
+            for _ in range(generation_number):
+                file_obj.seek(0)  # 파일 포인터 초기화 (중요!)
+                
+                if generation_model == "flux":
                     output = client.run(
-                        "openai/o4-mini",
+                        "black-forest-labs/flux-kontext-pro",
                         input={
-                            "prompt": word_prompt,
-                            "input_image": f,
+                            "prompt": full_prompt_english,
+                            "input_image": file_obj, # f 대신 file_obj 사용
+                            "aspect_ratio": generation_ratio,
                         }
                     )
-                    word_urls.append(flatten_output(output))
+                else: # sdxl 등
+                     output = client.run(
+                        "black-forest-labs/flux-kontext-pro", # 임시
+                        input={
+                            "prompt": full_prompt_english,
+                            "input_image": file_obj,
+                            "aspect_ratio": generation_ratio,
+                        }
+                    )
+
+                # URL 추출
+                generated_url = None
+                if isinstance(output, list) and output:
+                    generated_url = output[0]
+                elif isinstance(output, str):
+                    generated_url = output
+                elif output:
+                    generated_url = str(output)
+
+                if generated_url:
+                    image_urls.append(generated_url)
+                    if request.user.is_authenticated:
+                        GeneratedImage.objects.create(
+                            user=request.user,
+                            image_url=generated_url,
+                            prompt=full_prompt_english
+                        )
+
+            # [추천 문구 생성]
+            file_obj.seek(0)
+            output = client.run(
+                "openai/o4-mini",
+                input={
+                    "prompt": word_prompt,
+                    "input_image": file_obj,
+                }
+            )
+            word_urls.append(flatten_output(output))
+            
+            # 파일을 열었으니 닫아줍니다 (try-finally 블록이 더 좋지만 간단하게 여기서 처리)
+            file_obj.close()
 
             return JsonResponse({
                 "status": "success",
@@ -189,13 +203,13 @@ def generate_images(request):
 
         except Exception as e:
             print(f"Error: {e}")
+            if file_obj: file_obj.close() # 에러 발생 시에도 파일 닫기
             return JsonResponse({
                 "status": "error", 
                 "image_urls": [],
-                "word_urls": ["오류가 발생했습니다. 잠시 후 다시 시도해주세요."]
+                "word_urls": ["오류가 발생했습니다: " + str(e)]
             })
 
-    # GET도 POST도 아닌 경우 (혹시 모를 대비)
     return JsonResponse({"status": "error", "message": "Invalid method"})
 
 
@@ -250,24 +264,38 @@ def delete_account(request):
         return redirect('main')
     return render(request, 'delete_account.html')
 
-# ---------------------------------------------------------
-# 프리셋 관련 뷰 (필드명: settings로 통일)
-# ---------------------------------------------------------
-
 @require_POST
 @login_required
 def preset_save(request):
     try:
-        data = json.loads(request.body)
-        name = data.get('name')
-        form_data = data.get('formData')
+        name = request.POST.get('name')
+        data = request.POST.get('data')
 
-        Preset.objects.create(
+        image_file = request.FILES.get('image')
+
+        cached_path = request.POST.get('cached_image_path')
+
+        new_preset = Preset(
             user=request.user,
             name=name,
-            data=json.dumps(form_data) # data -> settings (필드명 확인 필요!)
+            data=data,
         )
-        return JsonResponse({'status': 'success', 'message': '프리셋이 저장되었습니다.'})
+
+        if image_file:
+            new_preset.image = image_file
+        elif cached_path:
+            full_path = os.path.join(settings.MEDIA_ROOT, cached_path)
+            if os.path.exists(full_path):
+                with open(full_path, 'rb') as f:
+                    new_preset.image.save(os.path.basename(full_path), File(f), save=False)
+        new_preset.save()
+
+        return JsonResponse({
+            'status': 'success', 
+            'message': '프리셋이 저장되었습니다.',
+            'preset_id': new_preset.id,
+            'preset_name': new_preset.name
+        })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
 
@@ -275,8 +303,14 @@ def preset_save(request):
 def preset_load(request, preset_id):
     try:
         preset = Preset.objects.get(id=preset_id, user=request.user)
-        # data -> settings
-        return JsonResponse({'status': 'success', 'data': json.loads(preset.data)})
+
+        response = {
+            'status': 'success',
+            'data': json.loads(preset.data),
+            'image_url': preset.image.url if preset.image else None,
+            'image_path': preset.image.path if preset.image else None,
+        }
+        return JsonResponse(response)
     except Preset.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': '프리셋을 찾을 수 없습니다.'})
 

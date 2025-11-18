@@ -24,8 +24,9 @@ class GeneratedImage(models.Model):
 
 class Preset(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100) 
     data = models.TextField()  # 프리셋 설정을 JSON 형태로 저장
+    image = models.ImageField(upload_to='presets/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
