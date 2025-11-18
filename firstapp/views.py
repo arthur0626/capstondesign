@@ -316,5 +316,12 @@ def preset_load(request, preset_id):
 
 @login_required
 def preset_delete(request, preset_id):
-    Preset.objects.filter(id=preset_id, user=request.user).delete()
-    return redirect('main')
+    try:
+        preset = get_object_or_404(Preset, id=preset_id, user=request.user)
+        if preset.image:
+            preset.image.delete(save=False)
+        preset.delete()
+        
+        return JsonResponse({'status': 'success', 'message': '삭제되었습니다.'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})

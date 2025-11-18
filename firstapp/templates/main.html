@@ -83,7 +83,8 @@
                         <span style="cursor: pointer; margin-right: 8px;" onclick="loadPreset({{ preset.id }})">
                             {{ preset.name }}
                         </span>
-                        <a href="{% url 'preset_delete' preset.id %}" onclick="return confirm('삭제하시겠습니까?')" style="color: red; text-decoration: none; font-weight: bold;">&times;</a>
+                        
+                        <span onclick="deletePreset({{ preset.id }}, this)" style="color: red; text-decoration: none; font-weight: bold; cursor: pointer;">&times;</span>
                     </div>
                 {% empty %}
                     <span style="color: gray; font-size: 0.9em;">저장된 프리셋이 없습니다.</span>
@@ -453,6 +454,7 @@
 
     </form>
 <script>
+    let currentLoadedId = null;
         // [1] 토글 기능 (안전성 강화 버전)
         function updateToggle(selectId, divId) {
             const selectBox = document.getElementById(selectId);
@@ -628,9 +630,9 @@
                         const newBtnHTML = `
                             <div style="display: inline-flex; align-items: center; background: white; padding: 5px 10px; border-radius: 20px; border: 1px solid #ccc;">
                                 <span style="cursor: pointer; margin-right: 8px;" onclick="loadPreset(${data.preset_id})">
-                                    ${data.preset_name}
+                                    ${name}
                                 </span>
-                                <a href="/preset/delete/${data.preset_id}/" onclick="return confirm('삭제하시겠습니까?')" style="color: red; text-decoration: none; font-weight: bold;">&times;</a>
+                                <span onclick="deletePreset(${data.preset_id}, this)" style="color: red; text-decoration: none; font-weight: bold; cursor: pointer;">&times;</span>
                             </div>
                         `;
                         // 목록 맨 앞에 추가 (또는 맨 뒤, 취향껏)
@@ -647,6 +649,7 @@
         }
         // [5] 프리셋 불러오기 (AJAX)
         function loadPreset(presetId) {
+            currentLoadedId = presetId;
             fetch(`/preset/load/${presetId}/`)
             .then(res => res.json())
             .then(result => {
@@ -678,6 +681,46 @@
                 } else {
                     alert("오류: " + result.message);
                 }
+            });
+        }
+        function deletePreset(presetId, btnElement) {
+            if (!confirm('정말 삭제하시겠습니까? (이미지도 함께 삭제됩니다)')) return;
+
+            const presetBox = btnElement.closest('div');
+
+            fetch(`/preset/delete/${presetId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    presetBox.remove();
+                    
+                    // 👇 [핵심 추가] 만약 삭제한 게 지금 보고 있는 프리셋이라면?
+                    if (currentLoadedId === presetId) {
+                        const previewImg = document.getElementById('previewImage');
+                        const cachedInput = document.getElementById('cachedImagePath');
+                        
+                        // 이미지 연결 끊기 (파일이 서버에서 사라졌으므로)
+                        if (previewImg) previewImg.style.display = 'none';
+                        if (cachedInput) cachedInput.value = ''; // 경로 비우기
+                        
+                        alert("현재 불러와진 프리셋의 원본 파일이 삭제되어, 이미지 연결이 해제되었습니다.");
+                        
+                        // ID 초기화
+                        currentLoadedId = null;
+                    }
+
+                    // 목록 비었는지 체크 (기존 코드)
+                    const container = document.getElementById('presetItems');
+                    if (container && container.children.length === 0) {
+                        container.innerHTML = '<span style="color: gray; font-size: 0.9em;">저장된 프리셋이 없습니다.</span>';
+                    }
+                } else {
+                    alert("삭제 실패: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("통신 중 오류가 발생했습니다.");
             });
         }
     </script>
