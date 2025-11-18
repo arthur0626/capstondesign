@@ -27,8 +27,12 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('signup/', views.signup, name='signup'),
     
-    # --- (여기 2줄을 추가합니다) ---
     path('profile/', views.profile, name='profile'),
     path('delete_account/', views.delete_account, name='delete_account'),
     path('profile/<int:user_id>/', views.view_user_profile, name='view_user'),
+
+    # 프리셋 관련 URL 패턴
+    path('preset/save/', views.preset_save, name='preset_save'),
+    path('preset/load/<int:preset_id>/', views.preset_load, name='preset_load'),
+    path('preset/delete/<int:preset_id>/', views.preset_delete, name='preset_delete'),
 ]

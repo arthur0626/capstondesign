@@ -2,12 +2,60 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>주류 마케팅 이미지 생성기</title>
+    <title>고급 주류 이미지 생성기</title>
+    <style>
+        /* 전체 레이아웃 스타일 */
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        legend {
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 0 10px;
+            color: #333;
+        }
+        /* 가로 정렬을 위한 Flex 컨테이너 */
+        .flex-container {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        /* 숨김 처리를 위한 클래스 */
+        .hidden-options {
+            display: none;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-left: 20px;
+            padding-left: 20px;
+            border-left: 2px solid #ddd;
+        }
+        /* 라벨 스타일 */
+        label {
+            margin-right: 5px;
+            font-weight: 500;
+        }
+        /* 입력 필드 스타일 */
+        select, input[type="text"], input[type="number"] {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="text"] {
+            width: 200px;
+        }
+    </style>
 </head>
 <body>
-    <div style="text-align: right; padding: 10px;">
+
+    <div style="text-align: right; padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
         {% if user.is_authenticated %}
-            <span>환영합니다, {{ user.username }} 님!</span>
+            <span style="margin-right: 10px; font-weight: bold;">환영합니다, {{ user.username }} 님!</span>
             <a href="{% url 'profile' %}"><button>프로필</button></a>
             <form action="{% url 'logout' %}" method="post" style="display: inline;">
                 {% csrf_token %}
@@ -18,83 +66,569 @@
             <a href="{% url 'login' %}"><button>로그인</button></a>
         {% endif %}
     </div>
-    <h1>📸 주류 마케팅 이미지 생성기</h1>
 
-    <form method="post" enctype="multipart/form-data">
+    <h1>📸 고급 주류 마케팅 이미지 생성기</h1>
+
+    {% if user.is_authenticated %}
+    <div style="background: #f1f1f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        
+        <div id="presetListContainer" style="display: flex; gap: 10px; align-items: center;">
+            <strong>📂 내 프리셋:</strong>
+            {% for preset in user_presets %}
+                <div style="display: inline-flex; align-items: center; background: white; padding: 5px 10px; border-radius: 20px; border: 1px solid #ccc;">
+                    <span style="cursor: pointer; margin-right: 8px;" onclick="loadPreset({{ preset.id }})">
+                        {{ preset.name }}
+                    </span>
+                    <a href="{% url 'preset_delete' preset.id %}" onclick="return confirm('삭제하시겠습니까?')" style="color: red; text-decoration: none; font-weight: bold;">&times;</a>
+                </div>
+            {% empty %}
+                <span style="color: gray; font-size: 0.9em;">저장된 프리셋이 없습니다.</span>
+            {% endfor %}
+        </div>
+
+        <div style="display: flex; gap: 5px;">
+            <input type="text" id="presetName" placeholder="프리셋 이름" style="width: 150px; padding: 5px;">
+            <button type="button" onclick="savePreset()" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">💾 저장</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="mainForm">
         {% csrf_token %}
 
-        <label>📷 주류 이미지 업로드:</label><br>
-        <input type="file" name="image" required><br><br>
+        <fieldset>
+            <legend>0. 이미지 업로드 (필수)</legend>
+            <div class="flex-container">
+                <div>
+                    <label>📷 원본 이미지:</label>
+                    <input type="file" name="image" required>
+                </div>
+            </div>
+        </fieldset>
 
-        <label>🎨 테마 선택:</label><br>
-        <select name="theme">
-            <option value="해변">해변</option>
-            <option value="바">바</option>
-            <option value="집">집</option>
-            <option value="포장마차">포장마차</option>
-            <option value="식당">식당</option>
-        </select><br><br>
+        <fieldset>
+            <legend>1. 주류 설정 (필수)</legend>
+            <div class="flex-container">
+                <div>
+                    <label>🍾 종류:</label>
+                    <select name="alcohol">
+                        <option value="beer">맥주</option>
+                        <option value="soju">소주</option>
+                        <option value="wine">와인</option>
+                        <option value="whiskey">위스키</option>
+                        <option value="cocktail">칵테일</option>
+                    </select>
+                </div>
+                <div>
+                    <label>💧 상태:</label>
+                    <select name="alcohol_status">
+                        <option value="full bottle">병 전체</option>
+                        <option value="half bottle">반쯤 남은 병</option>
+                        <option value="pouring">따르는 중</option>
+                    </select>
+                </div>
+                <div>
+                    <label>📍 위치:</label>
+                    <select name="alcohol_position">
+                        <option value="center">중앙</option>
+                        <option value="left">왼쪽</option>
+                        <option value="right">오른쪽</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
 
-        <label>🌈 분위기 선택:</label><br>
-        <select name="mood">
-            <option value="따듯한">따듯한</option>
-            <option value="차가운">차가운</option>
-            <option value="신나는">신나는</option>
-            <option value="세련된">세련된</option>
-            <option value="아련한">아련한</option>
-        </select><br><br>
+        <fieldset>
+            <legend>2. 잔 설정</legend>
+            <div class="flex-container">
+                <div>
+                    <label>🍷 잔 포함 여부:</label>
+                    <select id="toggle_glass" name="toggle_glass" onchange="toggleSection('toggle_glass', 'options_glass')">
+                        <option value="no" selected>아니요</option>
+                        <option value="yes">예</option>
+                    </select>
+                </div>
+                <div id="options_glass" class="hidden-options">
+                    <div>
+                        <label>유형:</label>
+                        <select name="glass_type">
+                            <option value="wine glass">와인 잔</option>
+                            <option value="shot glass">소주 잔</option>
+                            <option value="mug">맥주 잔</option>
+                            <option value="highball">하이볼 잔</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>상태:</label>
+                        <select name="glass_status">
+                            <option value="empty">빈 잔</option>
+                            <option value="half full">반 채워짐</option>
+                            <option value="full">가득 참</option>
+                            <option value="ice">얼음만 있음</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>위치:</label>
+                        <select name="glass_position">
+                            <option value="next to bottle">병 옆에</option>
+                            <option value="in front">병 앞에</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>장식(가니쉬):</label>
+                        <input type="text" name="glass_garnish" placeholder="예: 레몬, 체리, 라임">
+                    </div>
+                </div>
+            </div>
+        </fieldset>
 
-        <label>📍 위치 설정:</label><br>
-        <select name="placement">
-            <option value="테이블 위에 놓인">테이블 위</option>
-            <option value="사람이 들고 있는">사람 손</option>
-            <option value="바에 진열되어 있는는">바에 진열</option>
-        </select><br><br>
+        <fieldset>
+            <legend>3. 인물 설정</legend>
+            <div class="flex-container">
+                <div>
+                    <label>👤 인물 포함 여부:</label>
+                    <select id="toggle_human" name="toggle_human" onchange="toggleSection('toggle_human', 'options_human')">
+                        <option value="no" selected>아니요</option>
+                        <option value="yes">예</option>
+                    </select>
+                </div>
+                <div id="options_human" class="hidden-options">
+                    <div>
+                        <label>성별/유형:</label>
+                        <select name="human_type">
+                            <option value="woman">여성</option>
+                            <option value="man">남성</option>
+                            <option value="couple">커플</option>
+                            <option value="friends">친구들</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>연령대:</label>
+                        <select name="human_age">
+                            <option value="20s">20대</option>
+                            <option value="30s">30대</option>
+                            <option value="middle aged">중년</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>의상:</label>
+                        <input type="text" name="human_clothing" placeholder="예: 정장, 파티복, 캐주얼">
+                    </div>
+                    <div>
+                        <label>포즈:</label>
+                        <select name="human_pose">
+                            <option value="drinking">마시는 모습</option>
+                            <option value="holding glass">잔을 들고 있음</option>
+                            <option value="toasting">건배</option>
+                            <option value="looking at bottle">병을 바라봄</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>표정:</label>
+                        <select name="human_expression">
+                            <option value="smiling">미소</option>
+                            <option value="laughing">크게 웃음</option>
+                            <option value="serious">진지함</option>
+                            <option value="relaxed">편안함</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>위치:</label>
+                        <select name="human_position">
+                            <option value="holding product">제품을 들고 있음</option>
+                            <option value="background blurry">배경에 흐릿하게</option>
+                            <option value="side">제품 옆에</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
 
-        <label>🖼 비율 설정:</label><br>
-        <select name="aspect_ratio">
-            <option value="1:1">1:1</option>
-            <option value="3:4">3:4</option>
-            <option value="4:3">4:3</option>
-            <option value="9:16">9:16</option>
-            <option value="16:9" selected>16:9</option>
-        </select><br><br>
+        <fieldset>
+            <legend>4. 배경 설정</legend>
+            <div class="flex-container">
+                <div>
+                    <label>🏞 배경 설정 여부:</label>
+                    <select id="toggle_bg" name="toggle_bg" onchange="toggleSection('toggle_bg', 'options_bg')">
+                        <option value="no" selected>아니요 (기본)</option>
+                        <option value="yes">예</option>
+                    </select>
+                </div>
+                <div id="options_bg" class="hidden-options">
+                    <div>
+                        <label>테마:</label>
+                        <select name="background_theme">
+                            <option value="bar">고급 바</option>
+                            <option value="beach">해변</option>
+                            <option value="home party">홈 파티</option>
+                            <option value="restaurant">레스토랑</option>
+                            <option value="nature">야외/자연</option>
+                            <option value="studio">스튜디오(단색)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>세부 묘사:</label>
+                        <input type="text" name="background_details" placeholder="예: 네온사인, 모닥불, 야자수">
+                    </div>
+                    <div>
+                        <label>시간대:</label>
+                        <select name="background_time">
+                            <option value="daylight">낮</option>
+                            <option value="sunset">해질녘 (골든아워)</option>
+                            <option value="night">밤</option>
+                            <option value="midnight">자정</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
 
-        <label>🖼 모델 설정:</label><br>
-        <select name="model">
-            <option value="flux">flux</option>
-            <option value="alcohol_beach">alcohol_beach</option>
-        </select><br><br>
+        <fieldset>
+            <legend>5. 조명 설정</legend>
+            <div class="flex-container">
+                <div>
+                    <label>💡 조명 설정 여부:</label>
+                    <select id="toggle_light" name="toggle_light" onchange="toggleSection('toggle_light', 'options_light')">
+                        <option value="no" selected>아니요 (자동)</option>
+                        <option value="yes">예</option>
+                    </select>
+                </div>
+                <div id="options_light" class="hidden-options">
+                    <div>
+                        <label>유형:</label>
+                        <select name="lighting_type">
+                            <option value="cinematic">영화 같은 조명</option>
+                            <option value="natural">자연광</option>
+                            <option value="neon">네온 조명</option>
+                            <option value="studio softbox">스튜디오 소프트박스</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>거리/강도:</label>
+                        <select name="lighting_distance">
+                            <option value="soft">부드럽게</option>
+                            <option value="hard">강하게 (그림자 강조)</option>
+                            <option value="dim">어둡게</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>색상:</label>
+                        <input type="text" name="lighting_color" placeholder="예: 따뜻한 오렌지, 차가운 블루">
+                    </div>
+                    <div>
+                        <label>각도:</label>
+                        <select name="lighting_angle">
+                            <option value="front">정면</option>
+                            <option value="side">측면</option>
+                            <option value="backlight">역광 (실루엣)</option>
+                            <option value="top">상단</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
 
+        <fieldset>
+            <legend>6. 구도(촬영) 설정</legend>
+            <div class="flex-container">
+                <div>
+                    <label>🎥 구도 설정 여부:</label>
+                    <select id="toggle_shot" name="toggle_shot" onchange="toggleSection('toggle_shot', 'options_shot')">
+                        <option value="no" selected>아니요 (자동)</option>
+                        <option value="yes">예</option>
+                    </select>
+                </div>
+                <div id="options_shot" class="hidden-options">
+                    <div>
+                        <label>유형:</label>
+                        <select name="shot_type">
+                            <option value="close up">클로즈업</option>
+                            <option value="medium shot">미디엄 샷</option>
+                            <option value="full shot">풀 샷</option>
+                            <option value="product shot">제품 중심 샷</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>거리:</label>
+                        <select name="shot_distance">
+                            <option value="macro">매크로 (초근접)</option>
+                            <option value="near">가까이</option>
+                            <option value="far">멀리</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>각도:</label>
+                        <select name="shot_angle">
+                            <option value="eye level">눈높이</option>
+                            <option value="low angle">로우 앵글 (웅장함)</option>
+                            <option value="high angle">하이 앵글</option>
+                            <option value="top down">탑뷰 (항공샷)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
 
-        <label>🖨 생성 이미지 수량 (1~10):</label><br>
-        <input type="number" name="count" min="1" max="10" value="4"><br><br>
+        <fieldset>
+            <legend>7. 추가 프롬프트</legend>
+            <div class="flex-container">
+                <div>
+                    <label>✍️ 직접 입력 여부:</label>
+                    <select id="toggle_prompt" name="toggle_prompt" onchange="toggleSection('toggle_prompt', 'options_prompt')">
+                        <option value="no" selected>아니요</option>
+                        <option value="yes">예</option>
+                    </select>
+                </div>
+                <div id="options_prompt" class="hidden-options" style="width: 100%;">
+                    <div style="width: 45%;">
+                        <label>긍정 프롬프트 (추가):</label><br>
+                        <input type="text" name="user_positive_prompt" style="width: 90%;" placeholder="예: high quality, award winning">
+                    </div>
+                    <div style="width: 45%;">
+                        <label>부정 프롬프트 (제외):</label><br>
+                        <input type="text" name="user_negative_prompt" style="width: 90%;" placeholder="예: low quality, ugly">
+                    </div>
+                </div>
+            </div>
+        </fieldset>
 
-        <label>🧠 추가 사용자 프롬프트:</label><br>
-        <input type="text" name="prompt" size="80" placeholder="예: 한국인 커플, 술에 취한, 광란의, 평온한"><br><br>
+        <fieldset>
+            <legend>8. 생성 설정 (필수)</legend>
+            <div class="flex-container">
+                <div>
+                    <label>🤖 모델:</label>
+                    <select name="model">
+                        <option value="flux" selected>Flux (기본)</option>
+                        <option value="sdxl">SDXL</option>
+                    </select>
+                </div>
+                <div>
+                    <label>🔢 수량:</label>
+                    <input type="number" name="count" value="1" min="1" max="4">
+                </div>
+                <div>
+                    <label>🖼 비율:</label>
+                    <select name="aspect_ratio">
+                        <option value="1:1">1:1 (정사각형)</option>
+                        <option value="16:9" selected>16:9 (와이드)</option>
+                        <option value="9:16">9:16 (세로형)</option>
+                        <option value="4:3">4:3</option>
+                    </select>
+                </div>
+                <div>
+                    <label>🎨 스타일:</label>
+                    <select name="style">
+                        <option value="photorealistic" selected>실사 (Photorealistic)</option>
+                        <option value="cinematic">영화 같은 (Cinematic)</option>
+                        <option value="advertising">광고 (Advertising)</option>
+                        <option value="digital art">디지털 아트</option>
+                        <option value="vintage">빈티지</option>
+                    </select>
+                </div>
+                <div>
+                    <label>🌈 분위기:</label>
+                    <select name="mood">
+                        <option value="luxury">고급스러운</option>
+                        <option value="refreshing">청량한</option>
+                        <option value="dark">어두운/무거운</option>
+                        <option value="warm">따뜻한</option>
+                        <option value="energetic">에너지 넘치는</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
 
-        <button type="submit">✨ 이미지 생성</button>
+        <div style="text-align: center; margin-top: 30px;">
+            <button type="submit" style="padding: 15px 30px; font-size: 1.2em; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                ✨ 이미지 생성 시작
+            </button>
+        </div>
+
     </form>
+
+    <script>
+        // 1. 토글 기능 (메뉴 열고 닫기)
+        function toggleSection(selectId, divId) {
+            const selectBox = document.getElementById(selectId);
+            const optionsDiv = document.getElementById(divId);
+            if (selectBox && optionsDiv) {
+                optionsDiv.style.display = (selectBox.value === 'yes') ? 'flex' : 'none';
+            }
+        }
+
+        // 2. 프리셋 저장하기 (AJAX)
+        function savePreset() {
+            const nameInput = document.getElementById('presetName');
+            const name = nameInput.value;
+            
+            if (!name) {
+                alert("프리셋 이름을 입력해주세요.");
+                return;
+            }
+
+            // [수정완료] 오타 수정됨 (fomr -> form)
+            const form = document.getElementById('mainForm'); 
+            
+            if (!form) {
+                console.error("Form not found!");
+                return;
+            }
+
+            const formData = new FormData(form);
+            const dataObj = {};
+            
+            formData.forEach((value, key) => {
+                if(key !== 'csrfmiddlewaretoken' && key !== 'image') { 
+                    dataObj[key] = value;
+                }
+            });
+
+            fetch("{% url 'preset_save' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    formData: dataObj
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert("저장되었습니다! (새로고침 후 목록에 나타납니다)");
+                    // 편의를 위해 입력창 비우기
+                    nameInput.value = ''; 
+                } else {
+                    alert("오류: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error saving preset:", error);
+                alert("저장 중 오류가 발생했습니다.");
+            });
+        }
+
+        // 3. 프리셋 불러오기 (AJAX)
+        function loadPreset(presetId) {
+            // [중요] URL 경로가 'presets'인지 'preset'인지 urls.py와 꼭 맞춰야 합니다.
+            fetch(`/preset/load/${presetId}/`)
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    const data = result.data;
+                    console.log("불러온 데이터:", data);
+
+                    for (const [key, value] of Object.entries(data)) {
+                        const input = document.querySelector(`[name="${key}"]`);
+                        if (input) {
+                            input.value = value;
+                            // 메뉴 강제 열기를 위해 이벤트 발생
+                            input.dispatchEvent(new Event('change')); 
+                        }
+                    }
+                    alert("프리셋을 적용했습니다!");
+                } else {
+                    alert("오류: " + result.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error loading preset:", error);
+                alert("불러오기 중 오류가 발생했습니다.");
+            });
+        }
+
+        // 4. [핵심] 이미지 생성 요청 가로채기 (페이지 이동 방지)
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById('mainForm');
+            const resultArea = document.getElementById('resultArea');
+
+            // 폼이 없는 경우 에러 방지
+            if (!form) {
+                console.error("메인 폼(id='mainForm')을 찾을 수 없습니다.");
+                return;
+            }
+            
+            // 폼이 제출될 때(생성 버튼 클릭) 실행되는 함수
+            form.addEventListener('submit', function(e) {
+                
+                // 🛑 [가장 중요] 페이지 새로고침/이동을 막습니다!
+                e.preventDefault(); 
+                console.log("폼 제출 가로챔! AJAX 요청 시작...");
+
+                // 1. 로딩 표시
+                const btn = form.querySelector('button[type="submit"]');
+                const originalText = btn.innerText;
+                btn.innerText = "⏳ 생성 중입니다... (잠시만 기다려주세요)";
+                btn.disabled = true; 
+
+                // 2. 데이터 준비
+                const formData = new FormData(form);
+
+                // 3. 서버로 전송 (AJAX)
+                fetch("", { // 현재 URL로 보냄
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => response.json()) 
+                .then(data => {
+                    console.log("서버 응답 받음:", data);
+
+                    // 4. 결과 화면에 그리기
+                    let htmlContent = "";
+
+                    if (data.image_urls && data.image_urls.length > 0) {
+                        htmlContent += '<h2>🖼 생성된 이미지</h2>';
+                        data.image_urls.forEach(url => {
+                            htmlContent += `<img src="${url}" width="512" style="margin-bottom:10px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.1);"><br>
+                                            <a href="${url}" download><button style="padding:10px 20px; cursor:pointer;">📥 다운로드</button></a><br><br>`;
+                        });
+                    } else {
+                        htmlContent += '<p style="color:red;">⚠️ 생성된 이미지가 없습니다. (오류가 발생했거나 모델이 응답하지 않음)</p>';
+                    }
+
+                    if (data.word_urls && data.word_urls.length > 0) {
+                        htmlContent += '<h2>🗯 추천 문구</h2>';
+                        data.word_urls.forEach(txt => {
+                            htmlContent += `<div style="background:#f0f0f0; padding:15px; margin:10px 0; border-radius:8px;"><p style="margin:0; font-size:1.1em;">📢 ${txt}</p></div>`;
+                        });
+                    }
+
+                    // 5. 화면 업데이트 (div가 없으면 생성)
+                    if (!resultArea) {
+                        const newDiv = document.createElement('div');
+                        newDiv.id = 'resultArea';
+                        newDiv.style.textAlign = 'center';
+                        newDiv.style.marginTop = '30px';
+                        newDiv.innerHTML = '<hr>' + htmlContent;
+                        document.body.appendChild(newDiv);
+                        // 화면 스크롤을 결과창으로 이동
+                        newDiv.scrollIntoView({behavior: "smooth"});
+                    } else {
+                        resultArea.innerHTML = htmlContent;
+                        resultArea.scrollIntoView({behavior: "smooth"});
+                    }
+                })
+                .catch(error => {
+                    console.error('AJAX Error:', error);
+                    alert("생성 중 통신 오류가 발생했습니다.");
+                })
+                .finally(() => {
+                    // 6. 버튼 원상복구
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
+            });
+        });
+    </script>
 
     <hr>
 
-    {% if image_urls %}
-        <h2>🖼 생성된 이미지 ({{ image_urls|length }}장)</h2>
-        {% for url in image_urls %}
-            <img src="{{ url }}" width="512"><br><br>
-            <a href="{{ url }}" download>
-                <button>📥 이미지 다운로드</button>
-            </a><br><br>
-        {% endfor %}
-    {% endif %}
+    <div id="resultArea" style="text-align: center;"></div>
 
-
-
-    {% if word_urls %}
-    <h2>🗯 생성된 추천 문구 ({{ word_urls|length }}개)</h2>
-    {% for sentence in word_urls %}
-        <p>📢 {{ sentence }}</p><br>
-    {% endfor %}
-{% endif %}
 </body>
 </html>
