@@ -38,6 +38,12 @@ urlpatterns = [
     path('preset/save/', views.preset_save, name='preset_save'),
     path('preset/load/<int:preset_id>/', views.preset_load, name='preset_load'),
     path('preset/delete/<int:preset_id>/', views.preset_delete, name='preset_delete'),
+
+    # 이미지 분석, 편집, 동영상 변환
+    path('analyze/', views.image_analyze, name='image_analyze'),
+    path('edit/', views.image_edit, name='image_edit'),
+    path('video/', views.image_to_video, name='image_to_video'), 
+    
 ]
 
 if settings.DEBUG:

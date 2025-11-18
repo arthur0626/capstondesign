@@ -51,6 +51,19 @@
         input[type="text"] {
             width: 200px;
         }
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .tab-button {
+            padding: 10px 20px; font-size: 1.1em; border: none; background: none; cursor: pointer; 
+            border-radius: 5px 5px 0 0; color: #666; transition: all 0.3s;
+        }
+        .tab-button:hover { background-color: #eee; }
+        .tab-button.active {
+            background-color: #007bff; color: white; font-weight: bold;
+        }
+        .tab-content { display: none; /* 기본적으로 숨김 */ }
+        .tab-content.active { display: block; /* 선택된 탭만 보임 */ animation: fadeIn 0.5s; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -70,6 +83,90 @@
     </div>
 
     <h1>📸 고급 주류 마케팅 이미지 생성기</h1>
+
+    <div class="tab-container">
+        <button class="tab-button" onclick="openTab('tab-analysis')">📊 이미지 분석</button>
+        <button class="tab-button active" onclick="openTab('tab-generation')">✨ 이미지 생성</button>
+        <button class="tab-button" onclick="openTab('tab-editing')">🎨 이미지 편집</button>
+        <button class="tab-button" onclick="openTab('tab-video')">🎥 영상 생성</button>
+    </div>
+
+    <div id="tab-analysis" class="tab-content">
+        <h3>📊 AI 주류 이미지 분석 & 프롬프트 추천</h3>
+        <form id="analysisForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <fieldset>
+                <legend>분석 정보 입력</legend>
+                <div class="flex-container">
+                    <div><label>📷 분석할 이미지:</label><input type="file" name="target_image" required></div>
+                    <div><label>📝 주류 정보:</label><input type="text" name="liquor_info" placeholder="예: 12년산 싱글몰트 위스키, 도수 40%"></div>
+                </div>
+                <div class="flex-container" style="margin-top: 10px;">
+                    <div><label>🎯 타겟 성별:</label><select name="target_gender"><option>남녀무관</option><option>남성</option><option>여성</option></select></div>
+                    <div><label>🎂 타겟 연령:</label><select name="target_age"><option>20대</option><option>30대</option><option>40대 이상</option></select></div>
+                    <div><label>🍗 페어링 음식:</label><input type="text" name="pairing_food" placeholder="예: 스테이크, 치즈, 회"></div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button type="submit" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🔍 분석 시작</button>
+                </div>
+            </fieldset>
+        </form>
+        <div id="analysisResult" style="background: #e9ecef; padding: 20px; border-radius: 8px; display: none;"></div>
+    </div>
+    <div id="tab-editing" class="tab-content">
+        <h3>🎨 이미지 편집 (Inpainting & Editing)</h3>
+        <form id="editForm" enctype="multipart/form-data" style = "display: block;">
+            {% csrf_token %}
+            <fieldset>
+                <legend>편집 설정</legend>
+                <div class="flex-container">
+                    <div><label>📷 대상 이미지:</label><input type="file" name="edit_image" required></div>
+                    <div><label>✂️ 제거할 대상:</label><input type="text" name="remove_object" placeholder="예: 사람, 배경의 컵"></div>
+                </div>
+                <div class="flex-container" style="margin-top: 10px;">
+                    <div><label>✍️ 추가할 문구:</label><input type="text" name="add_text" placeholder="광고 문구 입력"></div>
+                    <div><label>🔤 폰트 스타일:</label><select name="font_style"><option>고딕 (모던)</option><option>명조 (클래식)</option><option>필기체</option></select></div>
+                    <div><label>📍 문구 위치:</label><select name="text_pos"><option>상단 중앙</option><option>하단 중앙</option><option>중앙</option></select></div>
+                </div>
+                <div class="flex-container" style="margin-top: 10px;">
+                    <div><label>🔄 분위기 전환:</label><select name="mood_shift"><option value="none">없음</option><option value="warm">따뜻하게</option><option value="cool">차가깝게</option><option value="retro">레트로하게</option></select></div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button type="submit" style="background-color: #6f42c1; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🎨 편집 실행</button>
+                </div>
+            </fieldset>
+        </form>
+        <div id="editResult" style="text-align: center; margin-top: 20px;"></div>
+    </div>
+
+    <div id="tab-video" class="tab-content">
+        <h3>🎥 광고 영상 생성 (Video Generation)</h3>
+        <form id="videoForm" enctype="multipart/form-data" style = "display: block;">
+            {% csrf_token %}
+            <fieldset>
+                <legend>영상 설정</legend>
+                <div class="flex-container">
+                    <div><label>📷 시작 이미지:</label><input type="file" name="start_image" required></div>
+                    <div><label>🤖 영상 모델:</label><select name="video_model"><option>SVD-XT (Stable Video Diffusion)</option><option>Runway Gen-2</option><option>AnimateDiff</option></select></div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label>🎬 원하는 내용 (프롬프트):</label><br>
+                    <input type="text" name="video_prompt" style="width: 90%;" placeholder="예: 술잔에 얼음이 떨어지며 물방울이 튀는 슬로우 모션">
+                </div>
+                <div class="flex-container" style="margin-top: 10px;">
+                    <div><label>⏱ 영상 길이:</label><select name="video_length"><option>2초</option><option>4초</option><option>5초</option></select></div>
+                    <div><label>🎞 화질(FPS):</label><select name="video_fps"><option>24 fps</option><option>30 fps</option><option>60 fps</option></select></div>
+                    <div><label>🏃‍♂️ 모션 강도:</label><input type="number" name="motion_bucket" value="127" min="1" max="255"></div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button type="submit" style="background-color: #fd7e14; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🎥 영상 생성 시작</button>
+                </div>
+            </fieldset>
+        </form>
+        <div id="videoResult" style="text-align: center; margin-top: 20px;"></div>
+    </div>
+
+    <div id="tab-generation" class="tab-content active">
 
     {% if user.is_authenticated %}
     <div style="background: #f1f1f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
@@ -451,12 +548,131 @@
                 ✨ 이미지 생성 시작
             </button>
         </div>
-
     </form>
+
+    
+
 <script>
+    function openTab(tabId) {
+            // 모든 콘텐츠 숨기기
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            
+            // 선택한 탭 보이기
+            document.getElementById(tabId).classList.add('active');
+            
+            // 버튼 스타일 활성화 (이벤트 타겟 찾기)
+            const buttons = document.querySelectorAll('.tab-button');
+            if (tabId === 'tab-analysis') buttons[0].classList.add('active');
+            if (tabId === 'tab-generation') buttons[1].classList.add('active');
+            if (tabId === 'tab-editing') buttons[2].classList.add('active');
+            if (tabId === 'tab-video') buttons[3].classList.add('active');
+        }
+
+        // [2] 이미지 분석 요청 (AJAX)
+        document.getElementById('analysisForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const resultDiv = document.getElementById('analysisResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '⏳ 이미지를 분석하고 프롬프트를 작성 중입니다...';
+            
+            const formData = new FormData(this);
+            fetch("{% url 'image_analyze' %}", { method: "POST", body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <h4>📊 분석 결과:</h4>
+                        <p>${data.analysis}</p>
+                        <hr>
+                        <h4>✍️ 추천 프롬프트:</h4>
+                        <p id="generatedPrompt" style="background: white; padding: 10px; border: 1px solid #ccc;">${data.prompt}</p>
+                        <br>
+                        <button type="button" onclick="applyPrompt()" style="background-color: #28a745; color: white; padding: 5px 15px; border: none; border-radius: 4px; cursor: pointer;">✨ 이 프롬프트로 이미지 생성하기</button>
+                    `;
+                } else { resultDiv.innerHTML = `<p style="color:red;">오류: ${data.message}</p>`; }
+            });
+        });
+
+        // [2-1] 분석된 프롬프트 적용 및 탭 이동 함수
+        function applyPrompt() {
+            const promptText = document.getElementById('generatedPrompt').innerText;
+            // 생성 탭의 '추가 프롬프트' 칸에 넣기
+            const targetInput = document.getElementById('user_positive_prompt');
+            if(targetInput) targetInput.value = promptText;
+            
+            // 생성 탭으로 이동
+            openTab('tab-generation');
+            alert("프롬프트가 적용되었습니다! 다른 옵션을 확인하고 생성 버튼을 누르세요.");
+        }
+
+        // [3] 편집/영상 폼 (더미 응답 처리)
+        // [3] 이미지 편집 및 영상 생성 (진짜 AJAX 처리)
+        function handleRealSubmit(formId, url, type) {
+            document.getElementById(formId).addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 결과창 ID 찾기
+                const resultId = (type === 'edit') ? 'editResult' : 'videoResult';
+                const resultDiv = document.getElementById(resultId);
+                
+                // 로딩 표시
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerText;
+                btn.innerText = "⏳ 작업 중입니다... (1분 소요)";
+                btn.disabled = true;
+                resultDiv.innerHTML = "<p style='color:blue;'>서버에서 작업을 처리 중입니다...</p>";
+                
+                const formData = new FormData(this);
+
+                fetch(url, {
+                    method: "POST",
+                    body: formData,
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        if (type === 'edit') {
+                            // 이미지 편집 결과
+                            resultDiv.innerHTML = `
+                                <h4>🎨 편집 완료!</h4>
+                                <img src="${data.image_url}" style="max-width:100%; border-radius:10px;"><br><br>
+                                <a href="${data.image_url}" download><button>📥 다운로드</button></a>
+                            `;
+                        } else {
+                            // 영상 생성 결과
+                            resultDiv.innerHTML = `
+                                <h4>🎥 영상 생성 완료!</h4>
+                                <video controls width="100%" autoplay loop>
+                                    <source src="${data.video_url}" type="video/mp4">
+                                    브라우저가 비디오를 지원하지 않습니다.
+                                </video><br><br>
+                                <a href="${data.video_url}" download><button>📥 영상 다운로드</button></a>
+                            `;
+                        }
+                    } else {
+                        resultDiv.innerHTML = `<p style="color:red;">오류: ${data.message}</p>`;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    resultDiv.innerHTML = "<p style='color:red;'>서버 통신 오류 발생</p>";
+                })
+                .finally(() => {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                });
+            });
+        }
+
+        // 함수 연결
+        handleRealSubmit('editForm', "{% url 'image_edit' %}", 'edit');
+        handleRealSubmit('videoForm', "{% url 'image_to_video' %}", 'video');
+
     let currentLoadedId = null;
         // [1] 토글 기능 (안전성 강화 버전)
-        function updateToggle(selectId, divId) {
+        function toggleSection(selectId, divId) {
             const selectBox = document.getElementById(selectId);
             const optionsDiv = document.getElementById(divId);
             
@@ -512,10 +728,10 @@
                 if (selectBox) {
                     // (A) 값이 바뀔 때 실행
                     selectBox.addEventListener('change', function() {
-                        updateToggle(selectId, divId);
+                        toggleSection(selectId, divId);
                     });
                     // (B) 페이지 처음 떴을 때 실행 (초기화)
-                    updateToggle(selectId, divId);
+                    toggleSection(selectId, divId);
                 }
             }
 
