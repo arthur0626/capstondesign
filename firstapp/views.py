@@ -157,6 +157,26 @@ def generate_images(request):
                             "aspect_ratio": generation_ratio,
                         }
                     )
+                elif generation_model == "custom_beach":
+                    output = replicate.run(
+                        "clipnpaper/alcohol_beach:5c3ef136e48fd434e8fa47c9deaad6d12527a61757305ca01169e58fc5b19ef5",
+                        input={
+                            "model": "dev",
+                            "prompt": full_prompt_english  + " alcohol_beach background,\n Place the referenced beer mask image on the table",
+                            "mask" : file_obj,
+                            "aspect_ratio": generation_ratio,
+                        }
+                    )
+                elif generation_model == "custom_bar":
+                    output = replicate.run(
+                        "clipnpaper/alcohol_cozy_bar:8f3dff77476698778b50f4d7a1112e10f03496d0f19ce38c583ab16cecec6fba",
+                        input={
+                            "model": "dev",
+                            "prompt": full_prompt_english + " cozy_bar background \nPlace the referenced beer mask image on the table",
+                            "mask" : file_obj,
+                            "aspect_ratio": generation_ratio,
+                        }
+                    )
                 else: # sdxl 등
                      output = client.run(
                         "black-forest-labs/flux-kontext-pro", # 임시
