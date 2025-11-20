@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ target_user.username }}님의 프로필 (관리자 뷰)</title>
-</head>
-<body>
+{% block title %}{{ target_user.username }}님의 프로필 (관리자 뷰){% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/profile_admin.css' %}">
+{% endblock %}
+
+{% block content %}
     <div style="text-align: right; padding: 10px;">
         <span>관리자({{ user.username }})로 로그인됨</span>
         <a href="{% url 'main' %}"><button>메인으로</button></a>
@@ -17,7 +17,7 @@
         </form>
     </div>
 
-    <h1>🖼 {{ target_user.username }} 님이 생성한 이미지</h1>
+    <h1>{{ target_user.username }} 님이 생성한 이미지</h1>
     <hr>
 
     {% for image in images %}
