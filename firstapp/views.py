@@ -9,6 +9,30 @@ from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm
 from django.contrib.auth.models import User
 
+def home_view(request):
+    context = {}
+    return render(request, "home.html")
+    
+def login_view(request):
+    context = {}
+    return render(request, "login.html")
+
+def signup_view(request):
+    context = {}
+    return render(request, "signup.html")
+
+def profile_view(request):
+    context = {}
+    return render(request, "profile.html")
+
+def delete_account_view(request):
+    context = {}
+    return render(request, "delete_account.html")
+
+def view_user_profile(request):
+    context = {}
+    return render(request, "view_user_profile.html")
+
 @login_required # 로그인을 해야만 접근 가능
 def profile(request):
     # .get() 대신 get_object_or_404를 쓰면 유저 프로필이 없을 때 404 에러를 냅니다.

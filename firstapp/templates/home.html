@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+    <header class="section-hero">
+        <h1>간편하게 AI로 완성하는<br>주류 광고 이미지</h1>
+        <button class="hero-button">지금 바로 생성하기</button>
+    </header>
+
+    <section class="section-intro">
+        <p><strong>비싼 비용</strong>과 <strong>오랜 시간</strong>이 드는 광고 촬영은 이제 그만.<br>
+        AI가 당신의 제품을 위한 완벽한 광고 이미지를 <strong>즉시 생성</strong>합니다.</p>
+    </section>
+
+    <section class="section-process">
+        <h2>놀랍도록 간단한 3단계 프로세스</h2>
+        <div class="process-list">
+            <div class="process-item">
+                <div class="process-image-placeholder">설명 이미지</div>
+                <div class="process-text">
+                    <h3>1. 이미지 선택</h3>
+                    <p>광고할 제품의 이미지를 선택합니다.</p>
+                </div>
+            </div>
+            <div class="process-item">
+                <div class="process-image-placeholder">설명 이미지</div>
+                <div class="process-text">
+                    <h3>2. 스타일 선택</h3>
+                    <p>만들고 싶은 광고의 스타일을 선택합니다.</p>
+                </div>
+            </div>
+            <div class="process-item">
+                <div class="process-image-placeholder">설명 이미지</div>
+                <div class="process-text">
+                    <h3>3. 이미지 생성</h3>
+                    <p>AI가 수십 초 내에 여러 가지 광고 시안을 생성합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="marquee-section">
+        <h2 class="marquee-heading">여러분이 원하던 광고를<br>지금 당장 만들어보세요</h2>
+
+        <div class="marquee-track track-rtl" id="track1">
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/FFB6C1/000000?text=Product+1" alt="제품 이미지 1"></div>
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/87CEFA/000000?text=Product+2" alt="제품 이미지 2"></div>
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/90EE90/000000?text=Product+3" alt="제품 이미지 3"></div>
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/FFDAB9/000000?text=Product+4" alt="제품 이미지 4"></div>
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/E6E6FA/000000?text=Product+5" alt="제품 이미지 5"></div>
+        </div>
+
+        <div class="marquee-track track-ltr" id="track2">
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/DDA0DD/000000?text=Product+6" alt="제품 이미지 6"></div>
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/F0E68C/000000?text=Product+7" alt="제품 이미지 7"></div>
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/ADD8E6/000000?text=Product+8" alt="제품 이미지 8"></div>
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/FFA07A/000000?text=Product+9" alt="제품 이미지 9"></div>
+            <div class="marquee-item"><img src="https://via.placeholder.com/250x180/B0C4DE/000000?text=Product+10" alt="제품 이미지 10"></div>
+        </div>
+    </section>
+
+    <script src="{% static 'js/home.js' %}"></script>
+{% endblock %}

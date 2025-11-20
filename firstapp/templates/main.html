@@ -4,11 +4,6 @@
     <link rel="stylesheet" href="{% static 'css/generator.css' %}">
 {% endblock %}
 
-{% extends 'base.html' %} {% load static %}
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/generator.css' %}">
-{% endblock %}
-
 {% block title %}이미지 생성기 - My Project{% endblock %}
 {% block content %}
 <form method="POST" enctype="multipart/form-data" action="{% url 'main' %}" class="generator-form">

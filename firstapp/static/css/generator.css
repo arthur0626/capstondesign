@@ -9,7 +9,7 @@
       calc(100vh - 40px)는 main-content의 padding(20px*2)을 제외한 높이입니다.
       페이지가 스크롤되는 것을 방지합니다.
     */
-    height: calc(100vh - 40px); 
+    min-height: calc(100vh - 40px);
     max-height: 900px; /* 최대 높이 제한 */
 }
 
@@ -24,7 +24,8 @@
 
 /* 1. 왼쪽: 업로드 컬럼 */
 .upload-column {
-    width: 400px; /* ⬅️ 원하는 너비(예: 500px)로 고정합니다. */
+    flex: 1; 
+    max-width: 400px;
     height: 450px;
     flex-shrink: 0; /* ⬅️ 창 크기가 줄어도 이 컬럼은 줄어들지 않습니다. */
     
@@ -102,7 +103,7 @@
 
 /* 2. 오른쪽: 설정 컬럼 */
 .settings-column {
-    width: 800px; /* ⬅️ flex: 1 대신 고정 너비 지정 */
+    flex:2;
     flex-shrink: 0;
     display: flex;
     min-width: 0;
@@ -112,6 +113,7 @@
 /* 설정 항목 카드 (와이어프레임의 오른쪽 카드) */
 .settings-card {
     flex: 1;
+    min-height: 450px;
     background-color: #ffffff;
     border-radius: 20px;
     padding: 30px;
@@ -134,7 +136,7 @@
     flex-direction: column;
 }
 
-/* [신규] 2칸 모두 차지하는 클래스 */
+/* 2칸 모두 차지하는 클래스 */
 .form-group.span-2 {
     grid-column: span 2;
 }
@@ -163,7 +165,7 @@
     font-family: inherit; /* 폰트 상속 */
 }
 
-/* [신규] Textarea 스타일 */
+/* Textarea 스타일 */
 .form-group textarea {
     padding-top: 12px;
     resize: vertical; /* 세로 크기만 조절 가능 */
