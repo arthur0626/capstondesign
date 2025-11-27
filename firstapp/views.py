@@ -356,10 +356,21 @@ def image_analyze(request):
     if request.method == "POST":
         try:
             image_file = request.FILES.get('target_image')
-            liquor_info = request.POST.get('liquor_info', '')
-            target_gender = request.POST.get('target_gender', '')
+
+            # 주류 세부 정보
+            liquor_type = request.POST.get('liquor_type', '')
+            main_ingredient = request.POST.get('main_ingredient', '')
+            liquor_taste = request.POST.get('liquor_taste', '')
+            liquor_aroma = request.POST.get('liquor_aroma', '')
+            liquor_texture = request.POST.get('liquor_texture', '')
+            pairing_food = request.POST.get('pairing_food', '')
+
+            # 마케팅 및 타겟 정보
             target_age = request.POST.get('target_age', '')
-            food = request.POST.get('pairing_food', '')
+            target_gender = request.POST.get('target_gender', '')
+            target_job = request.POST.get('target_job', '')
+            brand_value = request.POST.get('brand_value', '')
+            preferred_style = request.POST.get('preferred_style', '')
 
             if not image_file:
                 return JsonResponse({'status': 'error', 'message': '이미지가 필요합니다.'})
@@ -367,52 +378,72 @@ def image_analyze(request):
             # 이미지를 base64로 인코딩
             image_data = base64.b64encode(image_file.read()).decode('utf-8')
 
-            # GPT-4o-mini에게 보낼 프롬프트 구성
-            system_prompt = "You are a professional liquor marketing expert and photographer."
-            user_message = f"""
-            Analyze this liquor image.
-            Product Info: {liquor_info}
-            Target Audience: {target_gender}, {target_age}
-            Food Pairing: {food}
+            # 이미지를 base64로 인코딩 (API 전송용)
+            image_data = base64.b64encode(image_file.read()).decode('utf-8')
 
-            Please provide two things in JSON format:
-            1. 'analysis': A brief marketing analysis (in Korean) of why this product appeals to the target.
-            2. 'prompt': A high-quality English prompt for an AI image generator (like Flux) to create a perfect advertisement image for this product. Include lighting, composition, and atmosphere details.
+            # 2. [PROMPT] GPT-4o-mini에게 보낼 프롬프트 구성 (JSON 반환 강제)
+            system_prompt = "You are a professional liquor marketing expert and photographer. Your task is to analyze the provided image and generate a complete marketing brief and AI image generation prompts. The final output MUST be a single, valid JSON object. Do not include any text outside the JSON object."
+            user_message = f"""
+            Analyze the image of the liquor bottle/drink based on the following context and generate an advertisement concept.
+            
+            CONTEXT:
+            - 주류 타입/재료: {liquor_type} ({main_ingredient})
+            - 맛/향/질감: {liquor_taste} / {liquor_aroma} / {liquor_texture}
+            - 핵심 브랜드 가치: {brand_value}
+            - 타겟: {target_gender} {target_age} ({target_job})
+            - 페어링 음식: {pairing_food}
+            - 선호 스타일: {preferred_style}
+
+            Based on the analysis, output a single JSON object with these keys:
+            - 'summary_analysis': (Korean) A detailed marketing analysis (5-6 sentences) covering suggested colors, atmosphere, and target appeal.
+            - 'ad_prompt_pos': (English) A comprehensive positive AI prompt (including lighting, camera, and style) to generate a perfect advertisement image.
+            - 'ad_prompt_neg': (English) A list of crucial negative keywords (e.g., text, blurry, watermark).
+            - 'slogan_korean': (Korean) A list of 3 creative advertising slogans/taglines (up to 8 characters each).
             """
 
-            # OpenAI API 호출 (비전 기능 사용)
-            response = client.run( # (주의: 기존 client는 replicate용일 수 있음. OpenAI client 확인 필요)
-                "openai/gpt-4o-mini", # 혹은 replicate의 gpt-4o-mini 프록시 모델 사용
-                input={
-                    "prompt": user_message,
-                    "image": f"data:image/jpeg;base64,{image_data}" # Base64 이미지 전달
-                }
+            # 3. API 호출 (Replicate client 사용)
+            response = client.run( 
+                "openai/gpt-4o-mini",
+                input={"prompt": user_message, "image": f"data:image/jpeg;base64,{image_data}", "system_prompt": system_prompt}
             )
             
-            # (Replicate의 gpt-4o-mini 출력 형태에 따라 파싱 필요. 여기서는 텍스트라 가정)
-            # 실제로는 OpenAI native client를 쓰는 게 더 낫지만, 기존 client(replicate)를 쓴다면 모델명을 확인하세요.
-            # 만약 OpenAI API키가 따로 있다면 `import openai` 해서 쓰는 게 더 정확합니다.
+            # 4. 결과 파싱 및 정리
+            raw_text = flatten_output(response)
             
-            # [임시] Replicate 대신 OpenAI 직접 호출 예시 (더 안정적)
-            # import openai
-            # openai.api_key = "sk-..."
-            # ... completion 로직 ...
+            # [수정] JSON 블록만 안전하게 추출 (GPT가 종종 앞에 잡담을 덧붙임)
+            json_start = raw_text.find('{')
+            json_end = raw_text.rfind('}')
             
-            # 여기서는 텍스트로 그냥 반환한다고 가정
-            result_text = flatten_output(response) 
+            if json_start == -1 or json_end == -1:
+                 # JSON이 없는 경우 (API 오류)
+                return JsonResponse({'status': 'error', 'message': 'AI 모델이 JSON 형식을 반환하지 못했습니다. (원문: ' + raw_text[:50] + '...) 다시 시도해 주세요.'})
             
-            # 결과 예시 (실제로는 파싱 로직 필요)
-            analysis_text = "이 제품은 30대 남성을 타겟으로 하여 고급스러운 바 분위기가 어울립니다..."
-            prompt_text = "A bottle of single malt whisky on a wooden table, cinematic lighting..."
+            json_str = raw_text[json_start:json_end+1]
+            ai_data = json.loads(json_str)
 
+            # 5. 프론트엔드용 한국어 출력 포맷 생성
+            analysis_text = f"""
+            **주류 이미지 분석 결과:**
+            - **핵심 요약:** {ai_data.get('summary_analysis', '분석 불가')}
+            - **추천 포즈/구도:** {ai_data.get('analysis_points', '정보 없음')}
+            - **추천 문구:** {', '.join(ai_data.get('slogan_korean', []))}
+            """
+            
             return JsonResponse({
                 'status': 'success',
-                'analysis': result_text, # 전체 텍스트를 줌 (실제론 나눠야 함)
-                'prompt': "Cinematic shot of the liquor bottle, warm lighting, luxury bar background, 8k" # 가짜 예시
+                'analysis': analysis_text, 
+                'prompt_pos': ai_data.get('ad_prompt_pos', ''),
+                'prompt_neg': ', '.join(ai_data.get('ad_prompt_neg', [])),
+                'slogans': ai_data.get('slogan_korean', [])
             })
 
+        except json.JSONDecodeError:
+             return JsonResponse({'status': 'error', 'message': 'AI가 반환한 JSON 구조에 오류가 있습니다. 다시 분석을 시도해 보세요.'})
         except Exception as e:
+            # 이 외의 모든 오류 (API 통신, 파일 읽기 등)
             return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'})
 
 @login_required
 def image_edit(request):
