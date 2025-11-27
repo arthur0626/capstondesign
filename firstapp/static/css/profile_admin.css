@@ -1,0 +1,103 @@
+/* 1. 컨트롤 영역 (상단 버튼 및 관리자 정보) */
+.admin-controls-top {
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    padding: 10px 0;
+}
+.admin-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.admin-controls p {
+    font-weight: 500;
+    color: #555;
+    margin: 0;
+}
+
+/* 2. 버튼 스타일 통일 */
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+.btn {
+    /* generator.css의 폼 입력 요소 배경색 기반 */
+    padding: 8px 15px;
+    border: none;
+    border-radius: 10px;
+    background-color: #f0f0f0; 
+    color: #333;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #e0e0e0;
+}
+
+.btn-logout {
+    background-color: #333; /* 생성 버튼 색상 기반 */
+    color: white;
+}
+.btn-logout:hover {
+    background-color: #000;
+}
+
+/* 3. 제목 및 구분선 */
+h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}
+
+/* 4. 이미지 갤러리 및 카드 스타일 */
+.image-gallery-container {
+    /* 카드 그리드 레이아웃 */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: 25px;
+    padding: 10px;
+}
+
+.image-item-card {
+    /* generator.css의 .upload-box와 .settings-card 기반 디자인 통일 */
+    background-color: #ffffff;
+    border-radius: 20px; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
+    overflow: hidden; 
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.image-item-card:hover {
+    transform: translateY(-3px); /* 호버 효과 통일 */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.generated-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.image-details {
+    padding: 15px 20px;
+}
+.image-details p {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 5px 0;
+    word-break: break-all;
+}
+.image-details strong {
+    color: #333;
+}

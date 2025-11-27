@@ -1,0 +1,99 @@
+/* profile.css
+   profile.html 전용 스타일 (일반 및 관리자 뷰 모두 포함)
+   (generator.css의 디자인 요소를 계승)
+*/
+
+/* 1. 기본 스타일 및 컨트롤 */
+.user-controls-top {
+    /* 탈퇴 버튼을 우측 상단에 고정 */
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 0;
+}
+.btn {
+    /* 공통 버튼 스타일: generator.css의 폼 입력 요소 배경 기반 */
+    padding: 8px 15px;
+    border: none;
+    border-radius: 10px;
+    background-color: #f0f0f0;
+    color: #333;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+.btn:hover { background-color: #e0e0e0; }
+
+.btn-danger {
+    background-color: #dc3545; /* 빨간색 (탈퇴 버튼) */
+    color: white;
+}
+.btn-danger:hover { background-color: #c82333; }
+
+.btn-small { padding: 5px 10px; } /* 관리자 뷰 버튼 크기 조정 */
+
+
+/* 2. 일반 유저 뷰 (이미지 갤러리) - profile_admin.css와 통일 */
+h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
+
+.image-gallery-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: 25px;
+    padding: 10px;
+}
+
+.image-item-card {
+    background-color: #ffffff;
+    border-radius: 20px; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
+    overflow: hidden; 
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.image-item-card:hover {
+    transform: translateY(-3px); 
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+.generated-image { width: 100%; height: auto; display: block; }
+.image-details { padding: 15px 20px; }
+.image-details p { font-size: 0.9rem; color: #555; margin: 5px 0; }
+.image-details strong { color: #333; }
+
+
+/* 3. 관리자 뷰 (유저 목록) */
+.admin-subtitle { font-size: 1.5rem; color: #333; margin-top: 30px; }
+.user-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.user-item-card {
+    background-color: #ffffff;
+    border-radius: 10px; /* 유저 목록 카드는 조금 작게 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.1s ease;
+}
+.user-item-card:hover {
+    background-color: #f9f9f9;
+}
+.user-item-card p {
+    margin: 0;
+    color: #555;
+    font-size: 1rem;
+}
+.user-item-card strong {
+    color: #333;
+}

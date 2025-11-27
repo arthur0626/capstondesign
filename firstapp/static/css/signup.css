@@ -1,0 +1,86 @@
+/* 1. 컨테이너 및 중앙 정렬 (페이지 중앙에 카드를 배치) */
+.signup-container {
+    /* base.html의 main-content 중앙에 배치 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+    /* 뷰포트 높이에 따라 중앙 정렬되도록 min-height 설정 */
+    min-height: calc(100vh - 40px); /* login.css와 통일 */
+    padding: 20px;
+    
+    /* 카드 스타일링 */
+    width: 100%;
+    max-width: 450px; /* 로그인 카드보다 약간 더 넓게 설정 (폼 항목이 많을 수 있음) */
+    background-color: #ffffff;
+    border-radius: 20px; /* 둥근 모서리 통일 */
+    padding: 35px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* 그림자 통일 */
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.signup-container h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+/* 2. 폼 스타일 */
+.signup-form {
+    width: 100%;
+    text-align: left;
+}
+
+/* 폼 필드 스타일링 (Django form.as_p 출력 기준) */
+.signup-form p {
+    margin-bottom: 15px;
+}
+
+.signup-form label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+    display: block; 
+    margin-bottom: 5px;
+}
+
+.signup-form input[type="text"],
+.signup-form input[type="password"],
+.signup-form input[type="email"] {
+    width: 100%;
+    min-height: 48px; /* 최소 높이 통일 */
+    padding: 10px 12px;
+    border: none;
+    background-color: #f0f0f0; /* generator.css 폼 배경색 통일 */
+    border-radius: 10px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s ease;
+}
+
+.signup-form input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.3); /* 포커스 효과 통일 */
+}
+
+/* 3. 가입 버튼 스타일 (로그인 및 생성 버튼 스타일 기반) */
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background-color: #333; /* 생성/로그인 버튼 색상 통일 */
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    margin-top: 20px;
+}
+.submit-btn:hover {
+    background-color: #000;
+    /* transform: translateY(-1px); // 작은 호버 효과를 추가하여 통일 */
+}

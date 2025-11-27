@@ -19,7 +19,7 @@ def login_view(request):
 
 def signup_view(request):
     context = {}
-    return render(request, "signup.html")
+    return render(request, "signup.html",context)
 
 def profile_view(request):
     context = {}
@@ -29,7 +29,7 @@ def delete_account_view(request):
     context = {}
     return render(request, "delete_account.html")
 
-def view_user_profile(request):
+def view_user_profile_view(request):
     context = {}
     return render(request, "view_user_profile.html")
 

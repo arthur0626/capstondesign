@@ -1,0 +1,81 @@
+/* 1. 컨테이너 및 중앙 정렬 */
+.auth-card-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* 뷰포트 높이 전체에 중앙 정렬 */
+    min-height: calc(100vh - 40px); 
+    padding: 20px;
+}
+
+/* 2. 공통 인증 카드 스타일 */
+.auth-card {
+    width: 100%;
+    max-width: 450px; 
+    background-color: #ffffff;
+    border-radius: 20px; /* 둥근 모서리 통일 */
+    padding: 35px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* 그림자 통일 */
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* 3. 탈퇴 페이지 전용 강조 스타일 */
+.danger-card {
+    border: 2px solid #dc3545; /* 경고 빨간색 테두리 */
+}
+.danger-card h1 {
+    color: #dc3545; /* 제목 색상 경고색으로 */
+}
+
+.warning-text {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+.warning-text strong {
+    color: #dc3545;
+}
+
+/* 4. 버튼 그룹 및 버튼 스타일 */
+.button-group-full {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.submit-btn,
+.btn {
+    /* 버튼/링크를 블록 요소로 만들어 너비를 꽉 채움 */
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: block; 
+    transition: background-color 0.2s ease;
+}
+
+/* 탈퇴 버튼 (위험/주요 액션) */
+.btn-danger {
+    background-color: #dc3545; 
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* 취소 버튼 (보조 액션) */
+.btn-secondary {
+    background-color: #f0f0f0; 
+    color: #333;
+}
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
