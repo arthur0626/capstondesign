@@ -195,6 +195,36 @@
                 </div>
             </fieldset>
 
+            <fieldset>
+                <legend>5. 모델 정보</legend>
+                <div class="flex-container">
+                    <div>
+                        <label> 사용 모델:</label>
+                        <select name="model">
+                            <option value="gpt-4omini">gpt-4omini </option>
+                            <option value="gpt-5">gpt-5 </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label> 답변 길이:</label>
+                        <select name="verbosity">
+                            <option value="high">긺</option>
+                            <option value="medium">중간</option>
+                            <option value="low">짧음</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label> 생각량:</label>
+                        <select name="reasoning_effort">
+                            <option value="high">많음</option>
+                            <option value="medium">중간</option>
+                            <option value="low">적음</option>
+                            <option value="minimal">최소</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
             <div style="margin-top: 20px; text-align: center;">
                 <button type="submit" id="analyzeBtn" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🔍 분석 시작</button>
             </div>
@@ -206,6 +236,7 @@
         </form>
         <div id="analysisResult" style="background: #e9ecef; padding: 20px; border-radius: 8px; display: none;"></div>
     </div>
+    
     <div id="tab-editing" class="tab-content">
         <h3>🎨 이미지 편집 (Inpainting & Editing)</h3>
         <form id="editForm" enctype="multipart/form-data" style = "display: block;">
@@ -678,10 +709,22 @@
                 if(data.status === 'success') {
                     resultDiv.innerHTML = `
                         <h4>📊 분석 결과:</h4>
-                        <p>${data.analysis}</p>
+                        <p>${data.analysis_image}</p>
+                        <p>${data.analysis_color}</p>
+                        <p>${data.analysis_font}</p>
+                        <p>${data.analysis_model}</p>
+                        <p>${data.analysis_pose}</p>
+                        <p>${data.analysis_background}</p>
+                        <p>${data.analysis_lighting}</p>
+                        <p>${data.analysis_composition}</p>
+                        <p>${data.analysis_idea}</p>
                         <hr>
                         <h4>✍️ 추천 프롬프트:</h4>
-                        <p id="generatedPrompt" style="background: white; padding: 10px; border: 1px solid #ccc;">${data.prompt}</p>
+                        <p> ${data.analysis_positive}</p>
+                        <p> ${data.analysis_negative}</p>
+                        <hr>
+                        <h4> 추천 문구:</h4>
+                        <p>"${data.analysis_slogans}"</p>
                         <br>
                         <button type="button" onclick="applyPrompt()" style="background-color: #28a745; color: white; padding: 5px 15px; border: none; border-radius: 4px; cursor: pointer;">✨ 이 프롬프트로 이미지 생성하기</button>
                     `;

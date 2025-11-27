@@ -3,6 +3,7 @@ import json
 import replicate
 import base64
 import requests
+import re
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from dotenv import load_dotenv
@@ -23,12 +24,20 @@ load_dotenv()
 
 client = replicate.Client(api_token=os.getenv("REPLICATE_API_TOKEN"))
 
+import re # <-- 이 import는 views.py 상단에 있어야 합니다.
+
 def flatten_output(output):
+    if not output:
+        return ""
+        
+    # 1. 토큰들을 하나의 문자열로 합침 (list -> str)
     if isinstance(output, list):
-        return ' '.join(str(item).strip() for item in output if item).replace("\n", " ").strip()
-    elif isinstance(output, str):
-        return output.replace("\n", " ").strip()
-    return str(output).strip()
+        raw_text = ''.join(str(item) for item in output if item)
+    else:
+        raw_text = str(output)
+
+    # 7. 최종 출력 시, 텍스트가 시작/끝 부분에서 붙지 않도록 공백 추가
+    return raw_text.strip()
 
 def generate_images(request):
     # -------------------------------------------------------
@@ -242,7 +251,15 @@ def generate_images(request):
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
+
         if form.is_valid():
+            admin_key = form.cleaned_data.get('admin_key')
+            is_admin = form.cleaned_data.get('is_admin')
+
+            if is_admin and admin_key != settings.ADMIN_CREATION_KEY:
+                form.add_error('admin_key', '관리자 생성 키가 올바르지 않습니다.')
+                return render(request, 'signup.html', {'form': form})
+            
             user = form.save()
             login(request, user)
             return redirect('main')
@@ -372,6 +389,11 @@ def image_analyze(request):
             brand_value = request.POST.get('brand_value', '')
             preferred_style = request.POST.get('preferred_style', '')
 
+            # 모델 정보
+            model = request.POST.get('model', 'openai/gpt-5')
+            reasoning_effort = request.POST.get('reasoning_effort', 'minimal')
+            verbosity = request.POST.get('verbosity', 'medium')
+
             if not image_file:
                 return JsonResponse({'status': 'error', 'message': '이미지가 필요합니다.'})
 
@@ -382,7 +404,7 @@ def image_analyze(request):
             image_data = base64.b64encode(image_file.read()).decode('utf-8')
 
             # 2. [PROMPT] GPT-4o-mini에게 보낼 프롬프트 구성 (JSON 반환 강제)
-            system_prompt = "You are a professional liquor marketing expert and photographer. Your task is to analyze the provided image and generate a complete marketing brief and AI image generation prompts. The final output MUST be a single, valid JSON object. Do not include any text outside the JSON object."
+            system_prompt = "You are a professional liquor marketing expert and photographer. Your task is to analyze the provided image and generate a complete marketing brief and AI image generation prompts"
             user_message = f"""
             Analyze the image of the liquor bottle/drink based on the following context and generate an advertisement concept.
             
@@ -394,47 +416,60 @@ def image_analyze(request):
             - 페어링 음식: {pairing_food}
             - 선호 스타일: {preferred_style}
 
-            Based on the analysis, output a single JSON object with these keys:
-            - 'summary_analysis': (Korean) A detailed marketing analysis (5-6 sentences) covering suggested colors, atmosphere, and target appeal.
-            - 'ad_prompt_pos': (English) A comprehensive positive AI prompt (including lighting, camera, and style) to generate a perfect advertisement image.
-            - 'ad_prompt_neg': (English) A list of crucial negative keywords (e.g., text, blurry, watermark).
-            - 'slogan_korean': (Korean) A list of 3 creative advertising slogans/taglines (up to 8 characters each).
+            Based on the analysis, make an output. The output must be in korean except for the positive and negative prompts, and do not include '"' marks, '*' marks, '#' marks.
+            ●주류의 이미지:
+            ●추천 색상:
+            ●추천 폰트: 
+            ●추천 모델: 
+            ●추천 포즈: 
+            ●추천 배경: 
+            ●추천 조명: 
+            ●추천 구도: 
+            ●핵심 아이디어: 
+            ●긍정 프롬프트: A comprehensive positive AI prompt (including lighting, camera, and style) to generate a perfect advertisement image.
+            ●부정 프롬프트: A list of crucial negative keywords (e.g., text, blurry, watermark).
+            ●추천 광고 문구: A list of 10 creative advertising slogans/taglines (vaired by length of sentence).
             """
 
             # 3. API 호출 (Replicate client 사용)
             response = client.run( 
-                "openai/gpt-4o-mini",
-                input={"prompt": user_message, "image": f"data:image/jpeg;base64,{image_data}", "system_prompt": system_prompt}
+                "openai/gpt-5",
+                input={"prompt": user_message, 
+                       "image": [f"data:image/jpeg;base64,{image_data}"], 
+                       "system_prompt": system_prompt,
+                       "reasoning_effort": reasoning_effort,
+                        "verbosity": verbosity}
             )
             
-            # 4. 결과 파싱 및 정리
             raw_text = flatten_output(response)
-            
-            # [수정] JSON 블록만 안전하게 추출 (GPT가 종종 앞에 잡담을 덧붙임)
-            json_start = raw_text.find('{')
-            json_end = raw_text.rfind('}')
-            
-            if json_start == -1 or json_end == -1:
-                 # JSON이 없는 경우 (API 오류)
-                return JsonResponse({'status': 'error', 'message': 'AI 모델이 JSON 형식을 반환하지 못했습니다. (원문: ' + raw_text[:50] + '...) 다시 시도해 주세요.'})
-            
-            json_str = raw_text[json_start:json_end+1]
-            ai_data = json.loads(json_str)
+            parts = raw_text.split('●')
+            analysis_image = parts[1].strip()
+            analysis_color = parts[2].strip()
+            analysis_font = parts[3].strip()
+            analysis_model = parts[4].strip()
+            analysis_pose = parts[5].strip()
+            analysis_background = parts[6].strip()
+            analysis_lighting = parts[7].strip()
+            analysis_composition = parts[8].strip()
+            analysis_idea = parts[9].strip()
+            analysis_positive = parts[10].strip()
+            analysis_negative = parts[11].strip()
+            analysis_slogans = parts[12].strip()
 
-            # 5. 프론트엔드용 한국어 출력 포맷 생성
-            analysis_text = f"""
-            **주류 이미지 분석 결과:**
-            - **핵심 요약:** {ai_data.get('summary_analysis', '분석 불가')}
-            - **추천 포즈/구도:** {ai_data.get('analysis_points', '정보 없음')}
-            - **추천 문구:** {', '.join(ai_data.get('slogan_korean', []))}
-            """
-            
             return JsonResponse({
                 'status': 'success',
-                'analysis': analysis_text, 
-                'prompt_pos': ai_data.get('ad_prompt_pos', ''),
-                'prompt_neg': ', '.join(ai_data.get('ad_prompt_neg', [])),
-                'slogans': ai_data.get('slogan_korean', [])
+                'analysis_image': analysis_image,
+                'analysis_color': analysis_color,
+                'analysis_font': analysis_font,
+                'analysis_model': analysis_model,
+                'analysis_pose': analysis_pose,
+                'analysis_background': analysis_background,
+                'analysis_lighting': analysis_lighting,
+                'analysis_composition': analysis_composition,
+                'analysis_idea': analysis_idea,
+                'analysis_positive': analysis_positive,
+                'analysis_negative': analysis_negative,
+                'analysis_slogans': analysis_slogans,
             })
 
         except json.JSONDecodeError:
