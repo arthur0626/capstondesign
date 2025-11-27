@@ -374,8 +374,18 @@ def preset_delete(request, preset_id):
 @login_required
 def image_analyze(request):
     if request.method == "POST":
+        file_obj = None
+
         try:
-            image_file = request.FILES.get('target_image')
+            uploaded_file = request.FILES.get('target_image')
+
+            if not uploaded_file:
+                 return JsonResponse({'status': 'error', 'message': '이미지가 유효하지 않습니다.'})
+            
+            file_path = default_storage.save(uploaded_file.name, uploaded_file)
+            full_path = default_storage.path(file_path)
+            file_obj = open(full_path, "rb")
+
 
             # 주류 세부 정보
             liquor_type = request.POST.get('liquor_type', '')
@@ -396,15 +406,6 @@ def image_analyze(request):
             model = request.POST.get('model', 'openai/gpt-5')
             reasoning_effort = request.POST.get('reasoning_effort', 'minimal')
             verbosity = request.POST.get('verbosity', 'medium')
-
-            if not image_file:
-                return JsonResponse({'status': 'error', 'message': '이미지가 필요합니다.'})
-
-            # 이미지를 base64로 인코딩
-            image_data = base64.b64encode(image_file.read()).decode('utf-8')
-
-            # 이미지를 base64로 인코딩 (API 전송용)
-            image_data = base64.b64encode(image_file.read()).decode('utf-8')
 
             # 2. [PROMPT] GPT-4o-mini에게 보낼 프롬프트 구성 (JSON 반환 강제)
             system_prompt = "You are a professional liquor marketing expert and photographer. Your task is to analyze the provided image and generate a complete marketing brief and AI image generation prompts"
@@ -438,7 +439,7 @@ def image_analyze(request):
             response = client.run( 
                 "openai/gpt-5",
                 input={"prompt": user_message, 
-                       "image": [f"data:image/jpeg;base64,{image_data}"], 
+                       "image_input": [file_obj], 
                        "system_prompt": system_prompt,
                        "reasoning_effort": reasoning_effort,
                         "verbosity": verbosity}
@@ -486,115 +487,64 @@ def image_analyze(request):
 @login_required
 def image_edit(request):
     if request.method == "POST":
+        file_obj = None
+        full_path = None
+
         try:
             # 1. 파일 저장
             uploaded_file = request.FILES.get('edit_image')
-            if not uploaded_file:
-                return JsonResponse({'status': 'error', 'message': '이미지가 없습니다.'})
 
-            file_path = default_storage.save(f"edit/{uploaded_file.name}", uploaded_file)
+            if not uploaded_file:
+                 return JsonResponse({'status': 'error', 'message': '이미지가 유효하지 않습니다.'})
+            
+            file_path = default_storage.save(uploaded_file.name, uploaded_file)
             full_path = default_storage.path(file_path)
+            file_obj = open(full_path, "rb")
+
+            print ("file_obj:", file_obj)
 
             # 2. 사용자 입력 받기
-            remove_obj = request.POST.get('remove_object', '')
-            mood_shift = request.POST.get('mood_shift', 'none')
-            add_text = request.POST.get('add_text', '')
-            font_style = request.POST.get('font_style', '')
-            text_pos = request.POST.get('text_pos', 'center')
-
-            # 3. AI 편집 프롬프트 구성 (InstructPix2Pix 용)
-            edit_instructions = []
-            if remove_obj:
-                edit_instructions.append(f"remove {remove_obj}")
-            if mood_shift != 'none':
-                if mood_shift == 'warm': edit_instructions.append("make it warm atmosphere, sunset lighting")
-                elif mood_shift == 'cool': edit_instructions.append("make it cool atmosphere, blue tone")
-                elif mood_shift == 'retro': edit_instructions.append("make it vintage retro style")
+            edit_positive_prompt = request.POST.get('edit_positive_prompt', '')
             
-            final_instruction = ", ".join(edit_instructions)
+            output = client.run(
+                "bytedance/seedream-4",
+                    input={
+                        "image_input": [file_obj],
+                        "prompt": edit_positive_prompt,
+                    }
+                )
+
+            image_url = None
+            if isinstance(output, list): image_url = output[0]
+            elif isinstance(output, str): image_url = output
+            else: image_url = str(output)
+                
             
-            # 4. AI 편집 실행 (편집할 내용이 있을 때만)
-            current_image_url = None # 결과 이미지 URL
+            if not image_url:
+                raise ValueError("API가 유효한 URL을 반환하지 않았습니다.")
             
-            if final_instruction:
-                with open(full_path, "rb") as f:
-                    output = client.run(
-                        "timbrooks/instruct-pix2pix:30c1d0b916a6f8efce20493f5d61ee27491ab2a60437c13c588468b9810ec23f",
-                        input={
-                            "image": f,
-                            "prompt": final_instruction,
-                            "num_inference_steps": 20,
-                            "image_guidance_scale": 1.5,
-                        }
-                    )
-                    # 결과가 리스트나 문자열로 올 수 있음
-                    if isinstance(output, list): current_image_url = output[0]
-                    else: current_image_url = str(output)
-            else:
-                # AI 편집 없으면 원본 이미지 사용 (로컬 경로를 URL로 변환 필요하므로, 일단 원본 처리)
-                # 여기서는 로직 단순화를 위해 AI 편집이 없으면 원본 파일 경로를 씁니다.
-                pass 
 
-            # 5. 텍스트 삽입 (Pillow 사용)
-            if add_text:
-                # 5-1. 이미지 불러오기 (AI 결과가 있으면 URL에서, 없으면 로컬 파일에서)
-                if current_image_url:
-                    response = requests.get(current_image_url)
-                    img = Image.open(BytesIO(response.content))
-                else:
-                    img = Image.open(full_path)
+            image_url = str(image_url).strip()
+            print ("!!!!!!!!!!!!!!!!!!!!!!!!!!image_url:", image_url)
 
-                # 5-2. 그리기 도구 준비
-                draw = ImageDraw.Draw(img)
-                W, H = img.size
-                
-                # 폰트 설정 (한글 폰트 경로가 없으면 기본 폰트 사용 - 한글 깨질 수 있음 주의)
-                # 윈도우 기본 맑은고딕 경로 예시: "C:/Windows/Fonts/malgun.ttf"
-                # 리눅스/맥 서버라면 해당 폰트 경로 지정 필요. 없을 경우 기본 로드.
-                try:
-                    # 폰트 크기는 이미지 너비의 10% 정도로 설정
-                    font_size = int(W * 0.08) 
-                    font_path = "C:/Windows/Fonts/malgun.ttf" if os.name == 'nt' else "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
-                    font = ImageFont.truetype(font_path, font_size)
-                except:
-                    font = ImageFont.load_default()
-
-                # 5-3. 텍스트 크기 계산 및 위치 선정
-                bbox = draw.textbbox((0, 0), add_text, font=font)
-                w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-
-                x, y = (W-w)/2, (H-h)/2 # 기본 중앙
-                if text_pos == '상단 중앙': y = H * 0.1
-                elif text_pos == '하단 중앙': y = H * 0.8
-                
-                # 5-4. 텍스트 그리기 (가독성을 위해 그림자 추가)
-                shadow_color = "black"
-                text_color = "white"
-                # 그림자
-                draw.text((x+2, y+2), add_text, font=font, fill=shadow_color)
-                # 본문
-                draw.text((x, y), add_text, font=font, fill=text_color)
-
-                # 5-5. 결과 이미지 저장
-                save_path = f"edit/edited_{uploaded_file.name}"
-                full_save_path = os.path.join(settings.MEDIA_ROOT, save_path)
-                img.save(full_save_path)
-                
-                # 최종 URL은 로컬 미디어 URL
-                result_url = f"{settings.MEDIA_URL}{save_path}"
-            else:
-                # 텍스트 편집이 없으면 AI 결과 URL 사용
-                result_url = current_image_url
-
+            # 3. JsonResponse에는 추출된 문자열만 담아 보냅니다.
             return JsonResponse({
                 'status': 'success', 
-                'image_url': result_url,
+                "image_url": image_url, # 👈 이제 순수한 문자열(str)만 담깁니다.
                 'message': '편집이 완료되었습니다.'
             })
 
         except Exception as e:
             print(f"Edit Error: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)})
+        
+        finally:
+            # 6. [핵심] 파일을 열었으면 오류 유무와 관계없이 반드시 닫고 삭제
+            if file_obj:
+                file_obj.close()
+            if full_path and os.path.exists(full_path):
+                # 임시 저장된 파일 삭제
+                default_storage.delete(file_path)
             
     return JsonResponse({'status': 'error', 'message': 'Invalid Request'})
 

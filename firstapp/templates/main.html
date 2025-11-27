@@ -245,16 +245,9 @@
                 <legend>편집 설정</legend>
                 <div class="flex-container">
                     <div><label>📷 대상 이미지:</label><input type="file" name="edit_image" required></div>
-                    <div><label>✂️ 제거할 대상:</label><input type="text" name="remove_object" placeholder="예: 사람, 배경의 컵"></div>
                 </div>
                 <div class="flex-container" style="margin-top: 10px;">
-                    <div><label>✍️ 추가할 문구:</label><input type="text" name="add_text" placeholder="광고 문구 입력"></div>
-                    <div><label>🔤 폰트 스타일:</label><select name="font_style"><option>고딕 (모던)</option><option>명조 (클래식)</option><option>필기체</option></select></div>
-                    <div><label>📍 문구 위치:</label><select name="text_pos"><option>상단 중앙</option><option>하단 중앙</option><option>중앙</option></select></div>
-                </div>
-                <div class="flex-container" style="margin-top: 10px;">
-                    <div><label>🔄 분위기 전환:</label><select name="mood_shift"><option value="none">없음</option><option value="warm">따뜻하게</option><option value="cool">차가깝게</option><option value="retro">레트로하게</option></select></div>
-                </div>
+                    <div><label>✍️ 프롬프트:</label><input type="text" name="edit_positive_prompt" placeholder="프롬프트 입력"></div>
                 <div style="margin-top: 20px; text-align: center;">
                     <button type="submit" style="background-color: #6f42c1; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🎨 편집 실행</button>
                 </div>
