@@ -13,22 +13,24 @@
         <h2>이미지 생성 결과</h2>
         
         <div class="content-wrapper">
+            
             <div class="gallery-column">
                 <div class="main-image-wrapper">
-                    <img src="{{ image_urls.0 }}" id="main-image" alt="생성된 메인 이미지">
-                    <a href="{{ image_urls.0 }}" 
-                        download="generated_image_1.png" 
-                        id="download-link" 
-                        class="download-btn" 
-                        title="현재 이미지 다운로드">
-                        <span>↓</span>
-                    </a>
+                    {% if image_urls %}
+                        <img src="{{ image_urls.0 }}" id="main-image" alt="생성된 메인 이미지">
+                    {% endif %}
+
+                    {% if image_urls|length > 1 %}
+                    <div class="thumbnail-wrapper" id="thumbnail-container">
+                        {% for url in image_urls %}
+                            <img src="{{ url }}" 
+                                 class="thumbnail {% if forloop.first %}active{% endif %}" 
+                                 alt="썸네일 {{ forloop.counter }}" 
+                                 data-src="{{ url }}">
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="thumbnail-wrapper" id="thumbnail-container">
-                    {% for url in image_urls %}
-                        <img src="{{ url }}" class="thumbnail {% if forloop.first %}active{% endif %}" alt="썸네일 {{ forloop.counter }}" data-src="{{ url }}">
-                    {% endfor %}
-                </div>    
             </div>
 
             <div class="recommend-column">
@@ -46,16 +48,31 @@
         </div>
 
         <div class="action-buttons">
-            <button class="action-btn" title="히스토리 (준비 중)" disabled>
-                <span class="icon-gallery">🖼️</span>
-            </button>
+            
+            <div class="center-group">
+                {% if image_urls %}
+                <a href="{{ image_urls.0 }}" 
+                   download="generated_image.png" 
+                   id="download-link" 
+                   class="download-btn-large">
+                    다운로드
+                </a>
+                {% endif %}
+            </div>
 
-            <a href="{% url 'main' %}?product_type={{ original_settings.product_type|urlencode }}&theme={{ original_settings.theme|urlencode }}&mood={{ original_settings.mood|urlencode }}&placement={{ original_settings.placement|urlencode }}&prompt={{ original_settings.prompt|urlencode }}&extra_requirements={{ original_settings.extra_requirements|urlencode }}&model={{ original_settings.model|urlencode }}&aspect_ratio={{ original_settings.aspect_ratio|urlencode }}&count={{ original_settings.count|urlencode }}" 
-               class="action-btn" 
-               title="설정 유지하고 돌아가기">
-                <span class="icon-undo">🔄</span>
-            </a>
+            <div class="right-group">
+                <button class="action-btn" title="히스토리 (준비 중)" disabled>
+                    <span class="icon-gallery">🖼️</span>
+                </button>
+
+                <a href="{% url 'main' %}?product_type={{ original_settings.product_type|urlencode }}&theme={{ original_settings.theme|urlencode }}&mood={{ original_settings.mood|urlencode }}&placement={{ original_settings.placement|urlencode }}&prompt={{ original_settings.prompt|urlencode }}&extra_requirements={{ original_settings.extra_requirements|urlencode }}&model={{ original_settings.model|urlencode }}&aspect_ratio={{ original_settings.aspect_ratio|urlencode }}&count={{ original_settings.count|urlencode }}" 
+                   class="action-btn" 
+                   title="설정 유지하고 돌아가기">
+                    <span class="icon-undo">🔄</span>
+                </a>
+            </div>
         </div>
+
     </div>
 </div>
 
@@ -64,24 +81,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainImage = document.getElementById('main-image');
     const downloadLink = document.getElementById('download-link');
     const thumbnailContainer = document.getElementById('thumbnail-container');
-    const thumbnails = thumbnailContainer.querySelectorAll('.thumbnail');
 
-    thumbnailContainer.addEventListener('click', (e) => {
-        // 썸네일 이미지 클릭 시
-        if (e.target.classList.contains('thumbnail')) {
-            const newSrc = e.target.dataset.src;
-            
-            // 1. 큰 이미지 변경
-            mainImage.src = newSrc;
-            
-            // 2. 다운로드 링크 변경
-            downloadLink.href = newSrc;
-            
-            // 3. (선택) 활성 썸네일 스타일 변경
-            thumbnails.forEach(thumb => thumb.classList.remove('active'));
-            e.target.classList.add('active');
-        }
-    });
+    if (thumbnailContainer) {
+        thumbnailContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('thumbnail')) {
+                const newSrc = e.target.dataset.src;
+                
+                // 1. 큰 이미지 변경
+                if(mainImage) mainImage.src = newSrc;
+                
+                // 2. 다운로드 링크 변경
+                if(downloadLink) downloadLink.href = newSrc;
+                
+                // 3. 썸네일 활성 스타일 변경
+                const thumbnails = thumbnailContainer.querySelectorAll('.thumbnail');
+                thumbnails.forEach(thumb => thumb.classList.remove('active'));
+                e.target.classList.add('active');
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

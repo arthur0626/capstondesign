@@ -9,8 +9,8 @@
       calc(100vh - 40px)는 main-content의 padding(20px*2)을 제외한 높이입니다.
       페이지가 스크롤되는 것을 방지합니다.
     */
-    min-height: calc(100vh - 40px);
-    max-height: 900px; /* 최대 높이 제한 */
+    height: calc(100vh - 40px); 
+    max-height: 900px;
 }
 
 /* 2단 레이아웃 컨테이너 */
@@ -20,6 +20,10 @@
     width: 100%;
     height: 100%;
     justify-content: center;
+    align-items: center; 
+    
+    padding: 0 40px;
+    box-sizing: border-box;
 }
 
 /* 1. 왼쪽: 업로드 컬럼 */
@@ -27,8 +31,7 @@
     flex: 1; 
     max-width: 400px;
     height: 450px;
-    flex-shrink: 0; /* ⬅️ 창 크기가 줄어도 이 컬럼은 줄어들지 않습니다. */
-    
+    flex-shrink: 0; 
     display: flex;
     align-self: center;
 }
@@ -103,7 +106,7 @@
 
 /* 2. 오른쪽: 설정 컬럼 */
 .settings-column {
-    flex:2;
+    width : 600px;
     flex-shrink: 0;
     display: flex;
     min-width: 0;

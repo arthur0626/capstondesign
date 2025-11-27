@@ -109,6 +109,7 @@ def generate_images(request):
 
     if request.method == "POST":
         # GET POST VALUES
+        product_type = request.POST.get("product_type","맥주")
         theme = request.POST.get("theme", "")
         mood = request.POST.get("mood", "")
         placement = request.POST.get("placement", "")
@@ -127,11 +128,11 @@ def generate_images(request):
         # 프롬프트 합성
         full_prompt = f"""
         Translate the following product marketing scene into natural and realistic English, without listing:
-        "{mood} 분위기의 {theme}에서, 술이 {placement}에 위치한 상황입니다. {user_prompt}"
+        "입력된 이미지에 있는 바로 그 {product_type} 제품의 외형(라벨 디자인, 병 모양, 색상 등)을 완벽하게 유지한 채, 다음 상황에 자연스럽게 배치된 고품질 광고 사진을 만드세요: {mood} 분위기의 {theme} 배경에서, 해당 {product_type}이(가) {placement}에 놓여 있습니다. {user_prompt}"
         """.strip()
         word_prompt = f"""
         위 상황을 기반으로, 술 마케팅에 어울리는 간결하고 창의적인 한국어 한 줄 문장을 추천해줘.
-        상황: {mood} 분위기의 {theme}에서, 술이 {placement}에 위치함. {user_prompt}
+        상황: {mood} 분위기의 {theme}에서, {product_type} 종류의 술이 {placement}에 위치함. {user_prompt}
         """.strip()
 
         translated_prompt = client.run(
@@ -180,7 +181,16 @@ def generate_images(request):
                             }
                         )
                         output = output0[0]
-
+                    elif model_choice=="nanobanana":
+                        output = client.run(
+                            "google/nano-banana-pro",
+                            input={
+                                "prompt": full_prompt,
+                                "image_input": [f],
+                                "aspect_ratio": aspect_ratio,
+                                "output_format": "png"
+                            }
+                        )
                     generated_url = None
                     if isinstance(output, list) and output:
                         generated_url = output[0]
@@ -221,10 +231,30 @@ def generate_images(request):
                         # default_storage.delete(file_path)
 
                 # GET 요청이거나, POST 처리가 완료된 후 템플릿을 렌더링합니다.
-    return render(request, "main.html", {
-                    "image_urls": image_urls,
-                    "word_urls": word_urls
-                })
+        return render(request, "result.html", {
+            "image_urls": image_urls,
+            "word_urls": word_urls
+        })
+    else : 
+        context = {
+            "settings": {
+                "product_type": request.GET.get("product_type", "소주"),
+                "theme": request.GET.get("theme", "해변"),
+                "mood": request.GET.get("mood", "따듯한"),
+                "placement": request.GET.get("placement", "테이블 위에 놓인"),
+                "prompt": request.GET.get("prompt", ""),
+                "extra_requirements": request.GET.get("extra_requirements", ""),
+                "model": request.GET.get("model", "black-forest-labs/flux-kontext-pro"),
+                "aspect_ratio": request.GET.get("aspect_ratio", "16:9"),
+                "count": request.GET.get("count", "4"),
+            }
+        }
+        # main.html을 렌더링 (폼 페이지)
+        return render(request, "main.html", context)      
+    """return render(request, "main.html", {
+        "image_urls": image_urls,
+        "word_urls": word_urls
+    })"""
 
 def signup(request):
     if request.method == 'POST':

@@ -42,6 +42,7 @@
 .button-group-full {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 15px;
     margin-top: 20px;
 }
@@ -50,7 +51,9 @@
 .btn {
     /* 버튼/링크를 블록 요소로 만들어 너비를 꽉 채움 */
     width: 100%;
-    padding: 12px;
+    /*max-width: 300px;*/
+    
+    padding: 12px 0;
     border: none;
     border-radius: 10px;
     font-size: 1.1rem;
@@ -58,6 +61,7 @@
     cursor: pointer;
     text-align: center;
     text-decoration: none;
+    justify-content: center;
     display: block; 
     transition: background-color 0.2s ease;
 }

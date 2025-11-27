@@ -29,6 +29,7 @@ body {
   flex-direction: column; /* 세로 방향 정렬 */
   justify-content: space-between; /* 상단 메뉴와 하단 메뉴를 양 끝으로 밀어냄 */
   align-items: flex-start; /* 아이템 시작점에 정렬 (햄버거 버튼) */
+  z-index: 1000;
 }
 
 #sidebar.open {
@@ -103,4 +104,38 @@ body {
 /* 사이드바가 열렸을 때의 #sidebar 너비 설정 */
 #sidebar.open {
     width: 250px; 
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.logout-btn {
+    /* 1. 버튼 기본 스타일 제거 (못생긴 회색 박스 없애기) */
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-family: inherit; /* 폰트 상속 */
+    
+    /* 2. 기존 사이드바 메뉴(#sidebar li a)와 동일한 레이아웃 적용 */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 15px;          /* 아이콘과 텍스트 사이 간격 */
+    padding: 15px 20px; /* 패딩 */
+    
+    /* 3. 텍스트 스타일 통일 */
+    color: #333;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* 3. 마우스 올렸을 때 호버 효과 (기존과 동일) */
+.logout-btn:hover {
+    background-color: #f0f4f9;
 }
