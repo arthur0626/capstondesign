@@ -65,6 +65,10 @@ def generate_images(request):
             uploaded_file = request.FILES.get("image")
             cached_image_path = request.POST.get("cached_image_path") # 프리셋 이미지 경로
 
+            print(f"Uploaded file: {uploaded_file}")
+            print("Cached image path:", cached_image_path)
+            print("Request files:", request.FILES)
+
             if uploaded_file:
                 # 1. 새로 업로드한 파일이 있으면 저장하고 엽니다.
                 file_path = default_storage.save(uploaded_file.name, uploaded_file)
@@ -93,9 +97,6 @@ def generate_images(request):
             generation_ratio = request.POST.get("aspect_ratio", "16:9")
             generation_style = request.POST.get("style", "")
             generation_mood = request.POST.get("mood", "")
-            
-            # ... (나머지 모든 변수 가져오기 코드 그대로 유지) ...
-            # (너무 길어서 생략하지만, 기존 코드 그대로 두시면 됩니다)
             alcohol_type = request.POST.get("alcohol", "")
             alcohol_status = request.POST.get("alcohol_status", "")
             alcohol_position = request.POST.get("alcohol_position", "")
@@ -156,6 +157,8 @@ def generate_images(request):
             # file_obj(업로드 파일 또는 프리셋 파일)를 사용합니다.
             for _ in range(generation_number):
                 file_obj.seek(0)  # 파일 포인터 초기화 (중요!)
+
+                print("file_obj:", file_obj)
                 
                 if generation_model == "flux":
                     output = client.run(
@@ -598,41 +601,45 @@ def image_edit(request):
 @login_required
 def image_to_video(request):
     if request.method == "POST":
+        file_obj = None
+
         try:
-            uploaded_file = request.FILES.get('start_image')
+            uploaded_file = request.FILES.get('video_image')
+
             if not uploaded_file:
-                return JsonResponse({'status': 'error', 'message': '시작 이미지가 필요합니다.'})
+                 return JsonResponse({'status': 'error', 'message': '시작 이미지가 유효하지 않습니다.'})
             
-            file_path = default_storage.save(f"video/{uploaded_file.name}", uploaded_file)
+            file_path = default_storage.save(uploaded_file.name, uploaded_file)
             full_path = default_storage.path(file_path)
+            file_obj = open(full_path, "rb")
+
+            if uploaded_file:
+                # 파일을 MEDIA_ROOT에 저장
+                file_path = default_storage.save(uploaded_file.name, uploaded_file)
+                # 저장된 파일 경로를 기반으로 웹 접근 가능한 절대 URL 생성 (API에 전달할 형식)
+                public_file_url = request.build_absolute_uri(settings.MEDIA_URL + file_path)
+            
+            print ("public_file_url:", public_file_url)
 
             # 사용자 옵션
-            video_model = request.POST.get('video_model', 'SVD')
-            motion_bucket = int(request.POST.get('motion_bucket', 127))
-            fps = int(request.POST.get('video_fps', '24').replace(' fps', ''))
+            video_model = request.POST.get('video_model', 'google/veo-3.1')
+            video_positive_prompt = request.POST.get('video_positive_prompt', '')
+            video_ratio = request.POST.get('video_ratio', '16:9')
+            video_duration = int(request.POST.get('video_duration', '4'))
+            video_resolution = request.POST.get('video_resolution', '720p')
+            video_generate_audio = bool(request.POST.get('video_generate_audio', 'False'))
             
-            # 모델 매핑 (Replicate에 존재하는 모델로 매핑)
-            # SVD-XT: 가장 대중적인 오픈소스 비디오 모델
-            model_id = "stability-ai/stable-video-diffusion:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
-            
-            # AnimateDiff 선택 시 모델 변경
-            if 'AnimateDiff' in video_model:
-                model_id = "lucataco/animate-diff:beecf59c50aa896be068bbc735cd406cbd8b79e1c68074303d4793a128063666"
-
-            # API 호출
-            with open(full_path, "rb") as f:
-                output = client.run(
-                    model_id,
-                    input={
-                        "input_image": f,
-                        "video_length": "14_frames_with_svd_xt", # SVD 설정
-                        "sizing_strategy": "maintain_aspect_ratio",
-                        "frames_per_second": fps,
-                        "motion_bucket_id": motion_bucket,
-                        "cond_aug": 0.02,
-                        "decoding_t": 1,
-                    }
-                )
+            output = client.run(
+                        video_model,
+                        input={
+                            "prompt": video_positive_prompt,
+                            "image": file_obj,
+                            "aspect_ratio": video_ratio,
+                            "duration": video_duration,
+                            "generate_audio": video_generate_audio,
+                            "resolution": video_resolution,
+                        }
+            )
             
             # 비디오 URL 추출
             video_url = None

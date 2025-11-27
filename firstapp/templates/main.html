@@ -270,17 +270,17 @@
             <fieldset>
                 <legend>영상 설정</legend>
                 <div class="flex-container">
-                    <div><label>📷 시작 이미지:</label><input type="file" name="start_image" required></div>
-                    <div><label>🤖 영상 모델:</label><select name="video_model"><option>SVD-XT (Stable Video Diffusion)</option><option>Runway Gen-2</option><option>AnimateDiff</option></select></div>
+                    <div><label>📷 이미지:</label><input type="file" name="video_image" required></div>
                 </div>
                 <div style="margin-top: 10px;">
                     <label>🎬 원하는 내용 (프롬프트):</label><br>
-                    <input type="text" name="video_prompt" style="width: 90%;" placeholder="예: 술잔에 얼음이 떨어지며 물방울이 튀는 슬로우 모션">
+                    <input type="text" name="video_positive_prompt" style="width: 90%;" placeholder="예: 술잔에 얼음이 떨어지며 물방울이 튀는 슬로우 모션">
                 </div>
                 <div class="flex-container" style="margin-top: 10px;">
-                    <div><label>⏱ 영상 길이:</label><select name="video_length"><option>2초</option><option>4초</option><option>5초</option></select></div>
-                    <div><label>🎞 화질(FPS):</label><select name="video_fps"><option>24 fps</option><option>30 fps</option><option>60 fps</option></select></div>
-                    <div><label>🏃‍♂️ 모션 강도:</label><input type="number" name="motion_bucket" value="127" min="1" max="255"></div>
+                    <div><label>⏱ 영상 길이:</label><select name="video_duration"><option value="4">4</option><option value="6">6</option><option value="8">8</option></select></div>
+                    <div><label>🎞 비율:</label><select name="video_ratio"><option value="16:9">16:9</option><option value="9:16">9:16</option></select></div>
+                    <div><label>🏃‍♂️ 화질:</label><select name="video_resolution"><option value="720p">720p</option><option value="1080p">1080p</option></select></div>
+                    <div><label>🔊 오디오 생성:</label><select name="video_generate_audio"><option value="true">예</option><option value="false">아니요</option></select></div>
                 </div>
                 <div style="margin-top: 20px; text-align: center;">
                     <button type="submit" style="background-color: #fd7e14; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🎥 영상 생성 시작</button>
