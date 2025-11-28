@@ -159,5 +159,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }, false);
 });
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // 1. 제품별 추천 조합 정의 (이 부분을 원하시는 대로 수정하시면 됩니다!)
+        const recommendations = {
+            "소주": {
+                theme: "포장마차",
+                mood: "따듯한",
+                placement: "테이블 위",
+                model: "flux",       // 소주는 사실적인 Flux가 어울림
+                aspect_ratio: "4:3"  // 인스타 피드용 비율
+            },
+            "맥주": {
+                theme: "해변",
+                mood: "신나는",
+                placement: "사람 손", /* 맥주는 짠! 하는 느낌 */
+                model: "alcohol_beach", /* 맥주는 해변 특화 모델 */
+                aspect_ratio: "9:16" /* 틱톡/릴스 스타일 */
+            },
+            "와인": {
+                theme: "고급 식당",
+                mood: "세련된",
+                placement: "테이블 위",
+                model: "nanobanana", /* 고급스러운 느낌 */
+                aspect_ratio: "1:1"
+            },
+            "위스키": {
+                theme: "바",
+                mood: "아련한", /* 혹은 '차분한' */
+                placement: "바에 진열되어 있는",
+                model: "flux",
+                aspect_ratio: "3:4"
+            },
+            "막걸리": {
+                theme: "집 (홈파티)", /* 혹은 전통적인 느낌 */
+                mood: "따듯한",
+                placement: "테이블 위",
+                model: "flux",
+                aspect_ratio: "4:3"
+            },
+            "칵테일": {
+                theme: "바",
+                mood: "역동적인", /* 화려한 느낌 */
+                placement: "바에 진열되어 있는",
+                model: "nanobanana",
+                aspect_ratio: "9:16"
+            }
+        };
 
+        // 2. 요소 가져오기
+        const productSelect = document.getElementById('product-type-select');
+        const themeSelect = document.getElementById('theme-select');
+        const moodSelect = document.getElementById('mood-select');
+        const placementSelect = document.getElementById('placement-select');
+        const modelSelect = document.getElementById('model-select');
+        const ratioSelect = document.getElementById('aspect-ratio-select');
+
+        // 3. 제품 선택이 바뀌었을 때 실행될 함수
+        if (productSelect) {
+            productSelect.addEventListener('change', function() {
+                const selectedProduct = this.value; // 선택된 제품 (예: "소주")
+                const preset = recommendations[selectedProduct]; // 해당 제품의 프리셋 가져오기
+
+                if (preset) {
+                    // 각 select 박스의 값을 프리셋 값으로 변경
+                    if(themeSelect) themeSelect.value = preset.theme;
+                    if(moodSelect) moodSelect.value = preset.mood;
+                    if(placementSelect) placementSelect.value = preset.placement;
+                    if(modelSelect) modelSelect.value = preset.model;
+                    if(ratioSelect) ratioSelect.value = preset.aspect_ratio;
+
+                    // (선택사항) 변경되었다는 시각적 효과를 주고 싶다면 여기서 처리
+                    console.log(`${selectedProduct} 추천 설정으로 변경되었습니다.`);
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

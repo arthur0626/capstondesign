@@ -19,6 +19,12 @@ class GeneratedImage(models.Model):
     prompt = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    product_type = models.CharField(max_length=50, blank=True, null=True)
+    theme = models.CharField(max_length=50, blank=True, null=True)
+    mood = models.CharField(max_length=50, blank=True, null=True)
+    placement = models.CharField(max_length=100, blank=True, null=True)
+    user_prompt = models.TextField(blank=True, null=True) # 사용자가 입력한 키워드
+    
     def __str__(self):
         return f'{self.user.username} - {self.id}'
 

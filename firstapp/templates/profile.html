@@ -47,13 +47,22 @@
                 <div class="image-item-card">
                     <img src="{{ image.image_url }}" alt="생성 이미지" class="generated-image">
                     <div class="image-details">
-                        <p><strong>프롬프트:</strong> {{ image.prompt }}</p>
+                        <p><strong>제품:</strong> {{ image.product_type }}</p>
+                        <p><strong>테마:</strong> {{ image.theme }} / {{ image.mood }}</p>
+                        <p><strong>위치:</strong> {{ image.placement }}</p>
+                        {% if image.user_prompt %}
+                            <p><strong>키워드:</strong> {{ image.user_prompt }}</p>
+                        {% endif %}
                         <p><strong>생성일:</strong> {{ image.created_at|date:"Y.m.d H:i" }}</p>
+
+                        <a href="{% url 'main' %}?product_type={{ image.product_type }}&theme={{ image.theme }}&mood={{ image.mood }}&placement={{ image.placement }}&prompt={{ image.user_prompt }}" 
+                            class="btn btn-retry-small" title="다시 만들기">
+                            <img src="{% static 'images/refresh_icon.png' %}" alt="새로고침">
+                        </a>
                     </div>
                 </div>
-                {% if not forloop.last %}<hr class="card-separator">{% endif %}
             {% empty %}
-                <p>아직 생성한 이미지가 없습니다.</p>
+                <p>생성한 이미지가 없습니다.</p>
             {% endfor %}
         </div>
         

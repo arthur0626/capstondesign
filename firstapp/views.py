@@ -17,14 +17,6 @@ def login_view(request):
     context = {}
     return render(request, "login.html")
 
-def signup_view(request):
-    context = {}
-    return render(request, "signup.html",context)
-
-def profile_view(request):
-    context = {}
-    return render(request, "profile.html")
-
 def delete_account_view(request):
     context = {}
     return render(request, "delete_account.html")
@@ -107,9 +99,12 @@ def generate_images(request):
     image_urls = []
     word_urls = []
 
+    if request.method != "POST":
+        return render(request, "main.html")
+    
     if request.method == "POST":
         # GET POST VALUES
-        product_type = request.POST.get("product_type","맥주")
+        product_type = request.POST.get("product_type", "맥주")
         theme = request.POST.get("theme", "")
         mood = request.POST.get("mood", "")
         placement = request.POST.get("placement", "")
@@ -121,15 +116,28 @@ def generate_images(request):
 
         # 안전하게 정수 변환
         try:
-            image_number = max(1, min(int(image_number), 10))  # 1~10 범위 제한
+            image_number = max(1, min(int(image_number), 4))  # 1~10 범위 제한
         except ValueError:
-            image_number = 4  # 기본값
+            image_number = 1  # 기본값
+
+        original_settings = {
+        'product_type': product_type,
+        'theme': theme,
+        'mood': mood,
+        'placement': placement,
+        'prompt': user_prompt,
+        'extra_requirements': user_prompt,
+        'model': model_choice,
+        'aspect_ratio': aspect_ratio,
+        'count': image_number,
+        }
 
         # 프롬프트 합성
-        full_prompt = f"""
+        full_prompt_ = f"""
         Translate the following product marketing scene into natural and realistic English, without listing:
         "입력된 이미지에 있는 바로 그 {product_type} 제품의 외형(라벨 디자인, 병 모양, 색상 등)을 완벽하게 유지한 채, 다음 상황에 자연스럽게 배치된 고품질 광고 사진을 만드세요: {mood} 분위기의 {theme} 배경에서, 해당 {product_type}이(가) {placement}에 놓여 있습니다. {user_prompt}"
         """.strip()
+        
         word_prompt = f"""
         위 상황을 기반으로, 술 마케팅에 어울리는 간결하고 창의적인 한국어 한 줄 문장을 추천해줘.
         상황: {mood} 분위기의 {theme}에서, {product_type} 종류의 술이 {placement}에 위치함. {user_prompt}
@@ -138,7 +146,7 @@ def generate_images(request):
         translated_prompt = client.run(
             "openai/o4-mini",
             input={
-                "prompt": full_prompt,
+                "prompt": full_prompt_,
             }
         )
 
@@ -150,6 +158,7 @@ def generate_images(request):
 
             with open(full_path, "rb") as f:
                 # 1. 이미지 생성
+                output = None
                 for _ in range(image_number):
                     if model_choice == "flux":
                         output = client.run(
@@ -166,7 +175,7 @@ def generate_images(request):
                             input={
                                 "model": "dev",
                                 "input_image": f,
-                                "prompt": full_prompt + "alcohol_beach",
+                                "prompt": full_prompt + "alcohol_beach"+"Do not create alcohol products",
                                 "go_fast": False,
                                 "lora_scale": 1,
                                 "megapixels": "1",
@@ -180,7 +189,16 @@ def generate_images(request):
                                 "num_inference_steps": 28
                             }
                         )
-                        output = output0[0]
+                        output1 = replicate.run(
+                            "google/nano-banana-pro",
+                            input={
+                                "prompt" : "주류 광고 이미지를 제작합니다. 배경 이미지와 제품 이미지를 합성하세요. 제품의 일관성을 유지하세요. ",
+                                "input_image": [f, output0],
+                                "aspect_ratio": aspect_ratio,
+                                "output_format" : "png"
+                            }
+                        )
+                        output = output1[0]
                     elif model_choice=="nanobanana":
                         output = client.run(
                             "google/nano-banana-pro",
@@ -213,7 +231,13 @@ def generate_images(request):
                             GeneratedImage.objects.create(
                                 user=request.user,
                                 image_url=generated_url,
-                                prompt=full_prompt
+                                prompt=full_prompt,
+
+                                product_type=product_type,
+                                theme=theme,
+                                mood=mood,
+                                placement=placement,
+                                user_prompt=user_prompt
                             )
 
                 # 2. 추천 문구 생성 (파일을 다시 열 필요 없음)

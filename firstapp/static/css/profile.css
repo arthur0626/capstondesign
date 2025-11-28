@@ -35,6 +35,30 @@
 
 .btn-small { padding: 5px 10px; } /* 관리자 뷰 버튼 크기 조정 */
 
+/* 버튼 틀 (기존 유지) */
+.btn-retry-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    width: 40px; 
+    height: 40px;
+    
+    background-color: transparent; 
+    border: 1px solid #ddd; 
+    border-radius: 50%;
+    
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* 👇 PNG 이미지 스타일 (새로 추가) */
+.btn-retry-small img {
+    width: 20px;  /* 아이콘 크기 (조절 가능) */
+    height: 20px;
+    object-fit: contain; /* 비율 유지 */
+    display: block;
+}
 
 /* 2. 일반 유저 뷰 (이미지 갤러리) - profile_admin.css와 통일 */
 h1 {
@@ -48,7 +72,7 @@ hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
 .image-gallery-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-    gap: 10px;
+    gap: 5px;
     padding: 10px;
 }
 
@@ -58,6 +82,8 @@ hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
     overflow: hidden; 
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
 }
 .image-item-card:hover {
     transform: translateY(-3px); 

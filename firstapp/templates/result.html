@@ -10,7 +10,9 @@
 {% block content %}
 <div class="results-container">
     <div class="results-card">
-        <h2>이미지 생성 결과</h2>
+        <div class="card-header">
+            <h2>이미지 생성 결과</h2>
+        </div>
         
         <div class="content-wrapper">
             
@@ -21,12 +23,11 @@
                     {% endif %}
 
                     {% if image_urls|length > 1 %}
-                    <div class="thumbnail-wrapper" id="thumbnail-container">
+                    <div class="thumbnail-overlay">
                         {% for url in image_urls %}
-                            <img src="{{ url }}" 
-                                 class="thumbnail {% if forloop.first %}active{% endif %}" 
-                                 alt="썸네일 {{ forloop.counter }}" 
-                                 data-src="{{ url }}">
+                            <div class="thumb-item {% if forloop.first %}active{% endif %}" onclick="changeMainImage(this, '{{ url }}')">
+                                <img src="{{ url }}" alt="썸네일">
+                            </div>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -52,10 +53,12 @@
             <div class="center-group">
                 {% if image_urls %}
                 <a href="{{ image_urls.0 }}" 
-                   download="generated_image.png" 
-                   id="download-link" 
-                   class="download-btn-large">
-                    다운로드
+                    download="generated_image.png" 
+                    id="download-link" 
+                    class="download-btn-large">
+                    title="이미지 다운로드">
+                    <span class="icon">⬇️</span>
+                    <span class="text">다운로드</span>
                 </a>
                 {% endif %}
             </div>

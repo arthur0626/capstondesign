@@ -11,21 +11,21 @@
     <div class="auth-card-container">
         <div class="auth-card">
             <h2>로그인</h2>
-
+        
             <form method="post" class="auth-form">
                 {% csrf_token %}
-                
+            
                 {{ form.as_p }}
-                
+            
                 <button type="submit" class="submit-btn">로그인</button>
             </form>
-            
+        
             <hr class="separator">
-            
-            <p class="auth-link-text">
-                계정이 없으신가요? 
-                <a href="{% url 'signup' %}" class="auth-link">회원가입</a>
-            </p>
+                <p class="auth-link-text">
+                    계정이 없으신가요? 
+                    <a href="{% url 'signup' %}" class="auth-link">회원가입</a>
+                </p>
         </div>
     </div>
+    
 {% endblock %}
