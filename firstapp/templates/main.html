@@ -507,6 +507,8 @@
                         <option value="custom_beach">custom_beach</option>
                         <option value="custom_bar">custom_bar</option>
                         <option value="custom_stylish">custom_stylish</option>
+                        <option value="custom_bbq">custom_bbq</option>
+                        <option value="custom_pojangmacha">custom_pojangmacha</option>
                     </select>
                 </div>
                 <div>
@@ -764,7 +766,8 @@
                     .then(response => response.json())
                     .then(data => {
                         let htmlContent = "";
-                        if (data.image_urls && data.image_urls.length > 0) {
+
+                        if (Array.isArray(data.image_urls) && data.image_urls.length > 0) {
                             htmlContent += '<h2>🖼 생성된 이미지</h2>';
                             data.image_urls.forEach(url => {
                                 htmlContent += `<img src="${url}" width="512" style="margin-bottom:10px; border-radius:10px;"><br>
@@ -772,8 +775,10 @@
                             });
                         } else {
                             htmlContent += '<p style="color:red;">⚠️ 이미지가 생성되지 않았습니다.</p>';
+                            console.log("서버 응답 image_urls:", data.image_urls);
                         }
-                        if(resultArea) resultArea.innerHTML = htmlContent;
+
+                        if (resultArea) resultArea.innerHTML = htmlContent;
                     })
                     .catch(err => {
                         console.error(err);

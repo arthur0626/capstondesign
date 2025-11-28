@@ -23,6 +23,35 @@ load_dotenv()
 
 client = replicate.Client(api_token=os.getenv("REPLICATE_API_TOKEN"))
 
+def extract_url_from_replicate_output(output):
+    """
+    Replicate 결과(output)를 받아서,
+    - list
+    - dict
+    - FileOutput 객체
+    등 어떤 형태로 오든 간에 최종적으로 'str URL' 로 변환해서 반환
+    """
+    # 1) 리스트로 오는 경우 → 첫 번째 요소만 사용
+    if isinstance(output, list) and output:
+        output = output[0]
+
+    # 2) FileOutput 같은 객체에 .url 이 있는 경우
+    if hasattr(output, "url"):
+        return str(output.url)
+
+    # 3) dict 형태로 오는 경우 (혹시 모를 최신 포맷 대비)
+    if isinstance(output, dict):
+        if "url" in output:
+            return str(output["url"])
+        if "image" in output and isinstance(output["image"], dict) and "url" in output["image"]:
+            return str(output["image"]["url"])
+        if "output" in output and isinstance(output["output"], list) and output["output"]:
+            return str(output["output"][0])
+
+    # 4) 그 외에는 문자열로 강제 변환 (json 에 넣어도 되는 타입)
+    return str(output)
+
+
 def flatten_output(output):
     if isinstance(output, list):
         return ' '.join(str(item).strip() for item in output if item).replace("\n", " ").strip()
@@ -158,22 +187,62 @@ def generate_images(request):
                         }
                     )
                 elif generation_model == "custom_beach":
-                    output = replicate.run(
+                    output = client.run(
                         "clipnpaper/alcohol_beach:5c3ef136e48fd434e8fa47c9deaad6d12527a61757305ca01169e58fc5b19ef5",
                         input={
                             "model": "dev",
-                            "prompt": full_prompt_english  + " alcohol_beach background,\n Place the referenced beer mask image on the table",
+                            "prompt": "alcohol_beach background,"+ full_prompt_english  + "\n keep the provided bottle exactly as it is, "
+                                                             "do not alter the bottle. Do not alter, redraw, re-create, re-interpret, or modify the bottle, label, logo, text, "
+                                                             "shape, typography, or any branding elements in any way.",
                             "mask" : file_obj,
                             "aspect_ratio": generation_ratio,
                         }
                     )
                 elif generation_model == "custom_bar":
-                    output = replicate.run(
+                    output = client.run(
                         "clipnpaper/alcohol_cozy_bar:8f3dff77476698778b50f4d7a1112e10f03496d0f19ce38c583ab16cecec6fba",
                         input={
                             "model": "dev",
-                            "prompt": full_prompt_english + " cozy_bar background \nPlace the referenced beer mask image on the table",
+                            "prompt":  "cozy_bar background" + full_prompt_english + " cozy_bar background \n keep the provided bottle exactly as it is, "
+                                                            "do not alter the bottle. Do not alter, redraw, re-create, re-interpret,"
+                                                            " or modify the bottle, label, logo, text, shape, typography, or any branding elements in any way.",
                             "mask" : file_obj,
+                            "aspect_ratio": generation_ratio,
+                        }
+                    )
+                elif generation_model == "custom_stylish":
+                    output = client.run(
+                        "clipnpaper/alcohol_stylish:b320a707aabb4390f663d2e834c30b072b3b1ad0d294182b1c4eec329818074f",
+                        input={
+                            "model": "dev",
+                            "prompt": "stylish background "+full_prompt_english + "\n keep the provided bottle exactly as it is, "
+                                                            "do not alter the bottle. Do not alter, redraw, re-create, re-interpret,"
+                                                            " or modify the bottle, label, logo, text, shape, typography, or any branding elements in any way.",
+                            "mask" : file_obj,
+                            "aspect_ratio": generation_ratio,
+                        }
+                    )
+                elif generation_model == "custom_bbq":
+                    output = client.run(
+                        "clipnpaper/alcohol_bbq:81520f34f3770086c356c923a1101026bf77cbbe0bc84c3d2d9a496fa81735fa",
+                        input={
+                            "model": "dev",
+                            "prompt": "BBQ background" + full_prompt_english + "\n keep the provided bottle exactly as it is, "
+                                                            "do not alter the bottle. Do not alter, redraw, re-create, re-interpret,"
+                                                            " or modify the bottle, label, logo, text, shape, typography, or any branding elements in any way.",
+                            "mask": file_obj,
+                            "aspect_ratio": generation_ratio,
+                        }
+                    )
+                elif generation_model == "custom_pojangmacha":
+                    output = client.run(
+                        "clipnpaper/pojangmacha:5470dfeb19844ba06245c7e22214b7cdbce9e6034e8edcad74d9ef5a0c61a5cd",
+                        input={
+                            "model": "dev",
+                            "prompt": "pojangmacha background" + full_prompt_english + "\n keep the provided bottle exactly as it is, "
+                                                            "do not alter the bottle. Do not alter, redraw, re-create, re-interpret,"
+                                                            " or modify the bottle, label, logo, text, shape, typography, or any branding elements in any way.",
+                            "mask": file_obj,
                             "aspect_ratio": generation_ratio,
                         }
                     )
@@ -187,15 +256,23 @@ def generate_images(request):
                         }
                     )
 
-                # URL 추출
-                generated_url = None
-                if isinstance(output, list) and output:
-                    generated_url = output[0]
-                elif isinstance(output, str):
-                    generated_url = output
-                elif output:
-                    generated_url = str(output)
+                # 🔽 여기서 헬퍼 함수로 URL 추출 + 문자열화
+                generated_url = extract_url_from_replicate_output(output)
+                print("Replicate raw output:", output)
+                print("Parsed generated_url:", generated_url, type(generated_url))
 
+                # # URL 추출
+                # generated_url = None
+                # if isinstance(output, list) and output:
+                #     generated_url = output[0]
+                #     print("리스트")
+                # elif isinstance(output, str):
+                #     generated_url = output
+                #     print("하나")
+                # elif output:
+                #     generated_url = str(output)
+                #     print("안나옴")
+                #
                 if generated_url:
                     image_urls.append(generated_url)
                     if request.user.is_authenticated:
