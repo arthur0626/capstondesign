@@ -3,6 +3,7 @@ import json
 import replicate
 import base64
 import requests
+import re
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from dotenv import load_dotenv
@@ -53,11 +54,17 @@ def extract_url_from_replicate_output(output):
 
 
 def flatten_output(output):
+    if not output:
+        return ""
+
+    # 1. 토큰들을 하나의 문자열로 합침 (list -> str)
     if isinstance(output, list):
-        return ' '.join(str(item).strip() for item in output if item).replace("\n", " ").strip()
-    elif isinstance(output, str):
-        return output.replace("\n", " ").strip()
-    return str(output).strip()
+        raw_text = ''.join(str(item) for item in output if item)
+    else:
+        raw_text = str(output)
+
+    # 7. 최종 출력 시, 텍스트가 시작/끝 부분에서 붙지 않도록 공백 추가
+    return raw_text.strip()
 
 def generate_images(request):
     # -------------------------------------------------------
@@ -84,6 +91,10 @@ def generate_images(request):
             # [이미지 파일 처리 로직]
             uploaded_file = request.FILES.get("image")
             cached_image_path = request.POST.get("cached_image_path") # 프리셋 이미지 경로
+
+            print(f"Uploaded file: {uploaded_file}")
+            print("Cached image path:", cached_image_path)
+            print("Request files:", request.FILES)
 
             if uploaded_file:
                 # 1. 새로 업로드한 파일이 있으면 저장하고 엽니다.
@@ -176,7 +187,9 @@ def generate_images(request):
             # file_obj(업로드 파일 또는 프리셋 파일)를 사용합니다.
             for _ in range(generation_number):
                 file_obj.seek(0)  # 파일 포인터 초기화 (중요!)
-                
+
+                print("file_obj:", file_obj)
+
                 if generation_model == "flux":
                     output = client.run(
                         "black-forest-labs/flux-kontext-pro",
@@ -319,7 +332,15 @@ def generate_images(request):
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
+
         if form.is_valid():
+            admin_key = form.cleaned_data.get('admin_key')
+            is_admin = form.cleaned_data.get('is_admin')
+
+            if is_admin and admin_key != settings.ADMIN_CREATION_KEY:
+                form.add_error('admin_key', '관리자 생성 키가 올바르지 않습니다.')
+                return render(request, 'signup.html', {'form': form})
+
             user = form.save()
             login(request, user)
             return redirect('main')
@@ -431,219 +452,222 @@ def preset_delete(request, preset_id):
 @login_required
 def image_analyze(request):
     if request.method == "POST":
+        file_obj = None
+
         try:
-            image_file = request.FILES.get('target_image')
-            liquor_info = request.POST.get('liquor_info', '')
-            target_gender = request.POST.get('target_gender', '')
+            uploaded_file = request.FILES.get('target_image')
+
+            if not uploaded_file:
+                 return JsonResponse({'status': 'error', 'message': '이미지가 유효하지 않습니다.'})
+
+            file_path = default_storage.save(uploaded_file.name, uploaded_file)
+            full_path = default_storage.path(file_path)
+            file_obj = open(full_path, "rb")
+
+
+            # 주류 세부 정보
+            liquor_type = request.POST.get('liquor_type', '')
+            main_ingredient = request.POST.get('main_ingredient', '')
+            liquor_taste = request.POST.get('liquor_taste', '')
+            liquor_aroma = request.POST.get('liquor_aroma', '')
+            liquor_texture = request.POST.get('liquor_texture', '')
+            pairing_food = request.POST.get('pairing_food', '')
+
+            # 마케팅 및 타겟 정보
             target_age = request.POST.get('target_age', '')
-            food = request.POST.get('pairing_food', '')
+            target_gender = request.POST.get('target_gender', '')
+            target_job = request.POST.get('target_job', '')
+            brand_value = request.POST.get('brand_value', '')
+            preferred_style = request.POST.get('preferred_style', '')
 
-            if not image_file:
-                return JsonResponse({'status': 'error', 'message': '이미지가 필요합니다.'})
+            # 모델 정보
+            model = request.POST.get('model', 'openai/gpt-5')
+            reasoning_effort = request.POST.get('reasoning_effort', 'minimal')
+            verbosity = request.POST.get('verbosity', 'medium')
 
-            # 이미지를 base64로 인코딩
-            image_data = base64.b64encode(image_file.read()).decode('utf-8')
-
-            # GPT-4o-mini에게 보낼 프롬프트 구성
-            system_prompt = "You are a professional liquor marketing expert and photographer."
+            # 2. [PROMPT] GPT-4o-mini에게 보낼 프롬프트 구성 (JSON 반환 강제)
+            system_prompt = "You are a professional liquor marketing expert and photographer. Your task is to analyze the provided image and generate a complete marketing brief and AI image generation prompts"
             user_message = f"""
-            Analyze this liquor image.
-            Product Info: {liquor_info}
-            Target Audience: {target_gender}, {target_age}
-            Food Pairing: {food}
+            Analyze the image of the liquor bottle/drink based on the following context and generate an advertisement concept.
+            
+            CONTEXT:
+            - 주류 타입/재료: {liquor_type} ({main_ingredient})
+            - 맛/향/질감: {liquor_taste} / {liquor_aroma} / {liquor_texture}
+            - 핵심 브랜드 가치: {brand_value}
+            - 타겟: {target_gender} {target_age} ({target_job})
+            - 페어링 음식: {pairing_food}
+            - 선호 스타일: {preferred_style}
 
-            Please provide two things in JSON format:
-            1. 'analysis': A brief marketing analysis (in Korean) of why this product appeals to the target.
-            2. 'prompt': A high-quality English prompt for an AI image generator (like Flux) to create a perfect advertisement image for this product. Include lighting, composition, and atmosphere details.
+            Based on the analysis, make an output. The output must be in korean except for the positive and negative prompts, and do not include '"' marks, '*' marks, '#' marks.
+            ●주류의 이미지:
+            ●추천 색상:
+            ●추천 폰트: 
+            ●추천 모델: 
+            ●추천 포즈: 
+            ●추천 배경: 
+            ●추천 조명: 
+            ●추천 구도: 
+            ●핵심 아이디어: 
+            ●긍정 프롬프트: A comprehensive positive AI prompt (including lighting, camera, and style) to generate a perfect advertisement image.
+            ●부정 프롬프트: A list of crucial negative keywords (e.g., text, blurry, watermark).
+            ●추천 광고 문구: A list of 10 creative advertising slogans/taglines (vaired by length of sentence).
             """
 
-            # OpenAI API 호출 (비전 기능 사용)
-            response = client.run( # (주의: 기존 client는 replicate용일 수 있음. OpenAI client 확인 필요)
-                "openai/gpt-4o-mini", # 혹은 replicate의 gpt-4o-mini 프록시 모델 사용
-                input={
-                    "prompt": user_message,
-                    "image": f"data:image/jpeg;base64,{image_data}" # Base64 이미지 전달
-                }
+            # 3. API 호출 (Replicate client 사용)
+            response = client.run(
+                "openai/gpt-5",
+                input={"prompt": user_message,
+                       "image_input": [file_obj],
+                       "system_prompt": system_prompt,
+                       "reasoning_effort": reasoning_effort,
+                        "verbosity": verbosity}
             )
             
-            # (Replicate의 gpt-4o-mini 출력 형태에 따라 파싱 필요. 여기서는 텍스트라 가정)
-            # 실제로는 OpenAI native client를 쓰는 게 더 낫지만, 기존 client(replicate)를 쓴다면 모델명을 확인하세요.
-            # 만약 OpenAI API키가 따로 있다면 `import openai` 해서 쓰는 게 더 정확합니다.
-            
-            # [임시] Replicate 대신 OpenAI 직접 호출 예시 (더 안정적)
-            # import openai
-            # openai.api_key = "sk-..."
-            # ... completion 로직 ...
-            
-            # 여기서는 텍스트로 그냥 반환한다고 가정
-            result_text = flatten_output(response) 
-            
-            # 결과 예시 (실제로는 파싱 로직 필요)
-            analysis_text = "이 제품은 30대 남성을 타겟으로 하여 고급스러운 바 분위기가 어울립니다..."
-            prompt_text = "A bottle of single malt whisky on a wooden table, cinematic lighting..."
+            raw_text = flatten_output(response)
+            parts = raw_text.split('●')
+            analysis_image = parts[1].strip()
+            analysis_color = parts[2].strip()
+            analysis_font = parts[3].strip()
+            analysis_model = parts[4].strip()
+            analysis_pose = parts[5].strip()
+            analysis_background = parts[6].strip()
+            analysis_lighting = parts[7].strip()
+            analysis_composition = parts[8].strip()
+            analysis_idea = parts[9].strip()
+            analysis_positive = parts[10].strip()
+            analysis_negative = parts[11].strip()
+            analysis_slogans = parts[12].strip()
 
             return JsonResponse({
                 'status': 'success',
-                'analysis': result_text, # 전체 텍스트를 줌 (실제론 나눠야 함)
-                'prompt': "Cinematic shot of the liquor bottle, warm lighting, luxury bar background, 8k" # 가짜 예시
+                'analysis_image': analysis_image,
+                'analysis_color': analysis_color,
+                'analysis_font': analysis_font,
+                'analysis_model': analysis_model,
+                'analysis_pose': analysis_pose,
+                'analysis_background': analysis_background,
+                'analysis_lighting': analysis_lighting,
+                'analysis_composition': analysis_composition,
+                'analysis_idea': analysis_idea,
+                'analysis_positive': analysis_positive,
+                'analysis_negative': analysis_negative,
+                'analysis_slogans': analysis_slogans,
             })
 
+        except json.JSONDecodeError:
+             return JsonResponse({'status': 'error', 'message': 'AI가 반환한 JSON 구조에 오류가 있습니다. 다시 분석을 시도해 보세요.'})
         except Exception as e:
+            # 이 외의 모든 오류 (API 통신, 파일 읽기 등)
             return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'})
 
 @login_required
 def image_edit(request):
     if request.method == "POST":
+        file_obj = None
+        full_path = None
+
         try:
             # 1. 파일 저장
             uploaded_file = request.FILES.get('edit_image')
-            if not uploaded_file:
-                return JsonResponse({'status': 'error', 'message': '이미지가 없습니다.'})
 
-            file_path = default_storage.save(f"edit/{uploaded_file.name}", uploaded_file)
+            if not uploaded_file:
+                 return JsonResponse({'status': 'error', 'message': '이미지가 유효하지 않습니다.'})
+
+            file_path = default_storage.save(uploaded_file.name, uploaded_file)
             full_path = default_storage.path(file_path)
+            file_obj = open(full_path, "rb")
+
+            print ("file_obj:", file_obj)
 
             # 2. 사용자 입력 받기
-            remove_obj = request.POST.get('remove_object', '')
-            mood_shift = request.POST.get('mood_shift', 'none')
-            add_text = request.POST.get('add_text', '')
-            font_style = request.POST.get('font_style', '')
-            text_pos = request.POST.get('text_pos', 'center')
-
-            # 3. AI 편집 프롬프트 구성 (InstructPix2Pix 용)
-            edit_instructions = []
-            if remove_obj:
-                edit_instructions.append(f"remove {remove_obj}")
-            if mood_shift != 'none':
-                if mood_shift == 'warm': edit_instructions.append("make it warm atmosphere, sunset lighting")
-                elif mood_shift == 'cool': edit_instructions.append("make it cool atmosphere, blue tone")
-                elif mood_shift == 'retro': edit_instructions.append("make it vintage retro style")
+            edit_positive_prompt = request.POST.get('edit_positive_prompt', '')
             
-            final_instruction = ", ".join(edit_instructions)
-            
-            # 4. AI 편집 실행 (편집할 내용이 있을 때만)
-            current_image_url = None # 결과 이미지 URL
-            
-            if final_instruction:
-                with open(full_path, "rb") as f:
-                    output = client.run(
-                        "timbrooks/instruct-pix2pix:30c1d0b916a6f8efce20493f5d61ee27491ab2a60437c13c588468b9810ec23f",
-                        input={
-                            "image": f,
-                            "prompt": final_instruction,
-                            "num_inference_steps": 20,
-                            "image_guidance_scale": 1.5,
-                        }
-                    )
-                    # 결과가 리스트나 문자열로 올 수 있음
-                    if isinstance(output, list): current_image_url = output[0]
-                    else: current_image_url = str(output)
-            else:
-                # AI 편집 없으면 원본 이미지 사용 (로컬 경로를 URL로 변환 필요하므로, 일단 원본 처리)
-                # 여기서는 로직 단순화를 위해 AI 편집이 없으면 원본 파일 경로를 씁니다.
-                pass 
+            output = client.run(
+                "bytedance/seedream-4",
+                    input={
+                        "image_input": [file_obj],
+                        "prompt": edit_positive_prompt,
+                    }
+                )
 
-            # 5. 텍스트 삽입 (Pillow 사용)
-            if add_text:
-                # 5-1. 이미지 불러오기 (AI 결과가 있으면 URL에서, 없으면 로컬 파일에서)
-                if current_image_url:
-                    response = requests.get(current_image_url)
-                    img = Image.open(BytesIO(response.content))
-                else:
-                    img = Image.open(full_path)
-
-                # 5-2. 그리기 도구 준비
-                draw = ImageDraw.Draw(img)
-                W, H = img.size
+            image_url = None
+            if isinstance(output, list): image_url = output[0]
+            elif isinstance(output, str): image_url = output
+            else: image_url = str(output)
                 
-                # 폰트 설정 (한글 폰트 경로가 없으면 기본 폰트 사용 - 한글 깨질 수 있음 주의)
-                # 윈도우 기본 맑은고딕 경로 예시: "C:/Windows/Fonts/malgun.ttf"
-                # 리눅스/맥 서버라면 해당 폰트 경로 지정 필요. 없을 경우 기본 로드.
-                try:
-                    # 폰트 크기는 이미지 너비의 10% 정도로 설정
-                    font_size = int(W * 0.08) 
-                    font_path = "C:/Windows/Fonts/malgun.ttf" if os.name == 'nt' else "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
-                    font = ImageFont.truetype(font_path, font_size)
-                except:
-                    font = ImageFont.load_default()
 
-                # 5-3. 텍스트 크기 계산 및 위치 선정
-                bbox = draw.textbbox((0, 0), add_text, font=font)
-                w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+            if not image_url:
+                raise ValueError("API가 유효한 URL을 반환하지 않았습니다.")
 
-                x, y = (W-w)/2, (H-h)/2 # 기본 중앙
-                if text_pos == '상단 중앙': y = H * 0.1
-                elif text_pos == '하단 중앙': y = H * 0.8
-                
-                # 5-4. 텍스트 그리기 (가독성을 위해 그림자 추가)
-                shadow_color = "black"
-                text_color = "white"
-                # 그림자
-                draw.text((x+2, y+2), add_text, font=font, fill=shadow_color)
-                # 본문
-                draw.text((x, y), add_text, font=font, fill=text_color)
 
-                # 5-5. 결과 이미지 저장
-                save_path = f"edit/edited_{uploaded_file.name}"
-                full_save_path = os.path.join(settings.MEDIA_ROOT, save_path)
-                img.save(full_save_path)
-                
-                # 최종 URL은 로컬 미디어 URL
-                result_url = f"{settings.MEDIA_URL}{save_path}"
-            else:
-                # 텍스트 편집이 없으면 AI 결과 URL 사용
-                result_url = current_image_url
+            image_url = str(image_url).strip()
+            print ("!!!!!!!!!!!!!!!!!!!!!!!!!!image_url:", image_url)
 
+            # 3. JsonResponse에는 추출된 문자열만 담아 보냅니다.
             return JsonResponse({
                 'status': 'success', 
-                'image_url': result_url,
+                "image_url": image_url, # 👈 이제 순수한 문자열(str)만 담깁니다.
                 'message': '편집이 완료되었습니다.'
             })
 
         except Exception as e:
             print(f"Edit Error: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)})
-            
+
+        finally:
+            # 6. [핵심] 파일을 열었으면 오류 유무와 관계없이 반드시 닫고 삭제
+            if file_obj:
+                file_obj.close()
+            if full_path and os.path.exists(full_path):
+                # 임시 저장된 파일 삭제
+                default_storage.delete(file_path)
+
     return JsonResponse({'status': 'error', 'message': 'Invalid Request'})
 
 @login_required
 def image_to_video(request):
     if request.method == "POST":
+        file_obj = None
+
         try:
-            uploaded_file = request.FILES.get('start_image')
+            uploaded_file = request.FILES.get('video_image')
+
             if not uploaded_file:
-                return JsonResponse({'status': 'error', 'message': '시작 이미지가 필요합니다.'})
+                 return JsonResponse({'status': 'error', 'message': '시작 이미지가 유효하지 않습니다.'})
             
-            file_path = default_storage.save(f"video/{uploaded_file.name}", uploaded_file)
+            file_path = default_storage.save(uploaded_file.name, uploaded_file)
             full_path = default_storage.path(file_path)
+            file_obj = open(full_path, "rb")
+
+            if uploaded_file:
+                # 파일을 MEDIA_ROOT에 저장
+                file_path = default_storage.save(uploaded_file.name, uploaded_file)
+                # 저장된 파일 경로를 기반으로 웹 접근 가능한 절대 URL 생성 (API에 전달할 형식)
+                public_file_url = request.build_absolute_uri(settings.MEDIA_URL + file_path)
+
+            print ("public_file_url:", public_file_url)
 
             # 사용자 옵션
-            video_model = request.POST.get('video_model', 'SVD')
-            motion_bucket = int(request.POST.get('motion_bucket', 127))
-            fps = int(request.POST.get('video_fps', '24').replace(' fps', ''))
+            video_model = request.POST.get('video_model', 'google/veo-3.1')
+            video_positive_prompt = request.POST.get('video_positive_prompt', '')
+            video_ratio = request.POST.get('video_ratio', '16:9')
+            video_duration = int(request.POST.get('video_duration', '4'))
+            video_resolution = request.POST.get('video_resolution', '720p')
+            video_generate_audio = bool(request.POST.get('video_generate_audio', 'False'))
             
-            # 모델 매핑 (Replicate에 존재하는 모델로 매핑)
-            # SVD-XT: 가장 대중적인 오픈소스 비디오 모델
-            model_id = "stability-ai/stable-video-diffusion:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
-            
-            # AnimateDiff 선택 시 모델 변경
-            if 'AnimateDiff' in video_model:
-                model_id = "lucataco/animate-diff:beecf59c50aa896be068bbc735cd406cbd8b79e1c68074303d4793a128063666"
-
-            # API 호출
-            with open(full_path, "rb") as f:
-                output = client.run(
-                    model_id,
-                    input={
-                        "input_image": f,
-                        "video_length": "14_frames_with_svd_xt", # SVD 설정
-                        "sizing_strategy": "maintain_aspect_ratio",
-                        "frames_per_second": fps,
-                        "motion_bucket_id": motion_bucket,
-                        "cond_aug": 0.02,
-                        "decoding_t": 1,
-                    }
-                )
+            output = client.run(
+                        video_model,
+                        input={
+                            "prompt": video_positive_prompt,
+                            "image": file_obj,
+                            "aspect_ratio": video_ratio,
+                            "duration": video_duration,
+                            "generate_audio": video_generate_audio,
+                            "resolution": video_resolution,
+                        }
+            )
             
             # 비디오 URL 추출
             video_url = None

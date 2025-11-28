@@ -13,6 +13,11 @@ class CustomUserCreationForm(UserCreationForm):
     # required=False: 체크하지 않아도(일반 회원) 가입이 가능하도록 설정
     is_admin = forms.BooleanField(label='관리자(Admin) 계정으로 생성', required=False)
 
+    admin_key = forms.CharField(
+        label='관리자 생성 키', 
+        required=False, 
+        widget=forms.PasswordInput)
+
     class Meta(UserCreationForm.Meta):
         model = User
         # UserCreationForm이 아이디(username)와 

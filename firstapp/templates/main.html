@@ -95,24 +95,148 @@
         <h3>📊 AI 주류 이미지 분석 & 프롬프트 추천</h3>
         <form id="analysisForm" enctype="multipart/form-data">
             {% csrf_token %}
+            
             <fieldset>
-                <legend>분석 정보 입력</legend>
+                <legend>1. 이미지 첨부 (필수)</legend>
                 <div class="flex-container">
-                    <div><label>📷 분석할 이미지:</label><input type="file" name="target_image" required></div>
-                    <div><label>📝 주류 정보:</label><input type="text" name="liquor_info" placeholder="예: 12년산 싱글몰트 위스키, 도수 40%"></div>
+                    <div>
+                        <label>📷 분석할 이미지:</label>
+                        <input type="file" name="target_image" required>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>2. 주류 세부 정보 (필수)</legend>
+                <div class="flex-container">
+                    <div>
+                        <label>🍾 타입:</label>
+                        <select name="liquor_type">
+                            <option value="맥주">맥주 (Beer)</option>
+                            <option value="소주">소주 (Soju)</option>
+                            <option value="위스키">위스키 (Whiskey)</option>
+                            <option value="청주">청주 (Sake/Refined Rice Wine)</option>
+                            <option value="탁주">탁주 (Makgeolli/Rice Wine)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>🥩 페어링 음식:</label>
+                        <input type="text" name="pairing_food" placeholder="예: 치즈, 회, 스테이크">
+                    </div>
                 </div>
                 <div class="flex-container" style="margin-top: 10px;">
-                    <div><label>🎯 타겟 성별:</label><select name="target_gender"><option>남녀무관</option><option>남성</option><option>여성</option></select></div>
-                    <div><label>🎂 타겟 연령:</label><select name="target_age"><option>20대</option><option>30대</option><option>40대 이상</option></select></div>
-                    <div><label>🍗 페어링 음식:</label><input type="text" name="pairing_food" placeholder="예: 스테이크, 치즈, 회"></div>
+                    <div>
+                        <label>🌾 주 재료:</label>
+                        <input type="text" name="main_ingredient" placeholder="예: 보리, 쌀, 포도">
+                    </div>
+                    <div>
+                        <label>👅 맛:</label>
+                        <input type="text" name="liquor_taste" placeholder="예: 달콤함, 쌉싸름함, 드라이함">
+                    </div>
+                    <div>
+                        <label>👃 향:</label>
+                        <input type="text" name="liquor_aroma" placeholder="예: 꽃 향, 과일 향, 흙내">
+                    </div>
+                    <div>
+                        <label>✨ 질감/목넘김:</label>
+                        <input type="text" name="liquor_texture" placeholder="예: 부드러움, 묵직함, 청량함">
+                    </div>
                 </div>
-                <div style="margin-top: 20px; text-align: center;">
-                    <button type="submit" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🔍 분석 시작</button>
+            </fieldset>
+
+            <fieldset>
+                <legend>3. 마케팅 타겟 정보</legend>
+                <div class="flex-container">
+                    <div>
+                        <label>🎂 대상 나이대:</label>
+                        <select name="target_age">
+                            <option value="20s">20대</option>
+                            <option value="30s">30대</option>
+                            <option value="40s+">40대 이상</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>🎯 대상 성별:</label>
+                        <select name="target_gender">
+                            <option value="neutral">남녀무관</option>
+                            <option value="male">남성</option>
+                            <option value="female">여성</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>💼 대상 직업군:</label>
+                        <input type="text" name="target_job" placeholder="예: 사무직, 전문직, 학생">
+                    </div>
                 </div>
+            </fieldset>
+            
+            <fieldset>
+                <legend>4. AI 마케팅 기획 정보</legend>
+                <div class="flex-container">
+                    <div>
+                        <label>🥇 핵심 브랜드 가치:</label>
+                        <select name="brand_value">
+                            <option value="luxury">고급스러움 (Luxury)</option>
+                            <option value="refreshing">청량함 (Refreshing)</option>
+                            <option value="tradition">전통 (Tradition)</option>
+                            <option value="energy">활력/에너지 (Energy)</option>
+                            <option value="casual">편안함 (Casual)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>🎨 선호 이미지 스타일:</label>
+                        <select name="preferred_style">
+                            <option value="photorealistic">극사실적 사진</option>
+                            <option value="vintage_ad">빈티지 광고 포스터</option>
+                            <option value="cinematic">영화적 구도</option>
+                            <option value="illustration">일러스트</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>5. 모델 정보</legend>
+                <div class="flex-container">
+                    <div>
+                        <label> 사용 모델:</label>
+                        <select name="model">
+                            <option value="gpt-4omini">gpt-4omini </option>
+                            <option value="gpt-5">gpt-5 </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label> 답변 길이:</label>
+                        <select name="verbosity">
+                            <option value="high">긺</option>
+                            <option value="medium">중간</option>
+                            <option value="low">짧음</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label> 생각량:</label>
+                        <select name="reasoning_effort">
+                            <option value="high">많음</option>
+                            <option value="medium">중간</option>
+                            <option value="low">적음</option>
+                            <option value="minimal">최소</option>
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <button type="submit" id="analyzeBtn" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🔍 분석 시작</button>
+            </div>
+        </form>
+        
+        <div id="analysisResult" style="background: #e9ecef; padding: 20px; border-radius: 8px; margin-top: 20px; display: none;"></div>
+    </div>
             </fieldset>
         </form>
         <div id="analysisResult" style="background: #e9ecef; padding: 20px; border-radius: 8px; display: none;"></div>
     </div>
+    
     <div id="tab-editing" class="tab-content">
         <h3>🎨 이미지 편집 (Inpainting & Editing)</h3>
         <form id="editForm" enctype="multipart/form-data" style = "display: block;">
@@ -121,16 +245,9 @@
                 <legend>편집 설정</legend>
                 <div class="flex-container">
                     <div><label>📷 대상 이미지:</label><input type="file" name="edit_image" required></div>
-                    <div><label>✂️ 제거할 대상:</label><input type="text" name="remove_object" placeholder="예: 사람, 배경의 컵"></div>
                 </div>
                 <div class="flex-container" style="margin-top: 10px;">
-                    <div><label>✍️ 추가할 문구:</label><input type="text" name="add_text" placeholder="광고 문구 입력"></div>
-                    <div><label>🔤 폰트 스타일:</label><select name="font_style"><option>고딕 (모던)</option><option>명조 (클래식)</option><option>필기체</option></select></div>
-                    <div><label>📍 문구 위치:</label><select name="text_pos"><option>상단 중앙</option><option>하단 중앙</option><option>중앙</option></select></div>
-                </div>
-                <div class="flex-container" style="margin-top: 10px;">
-                    <div><label>🔄 분위기 전환:</label><select name="mood_shift"><option value="none">없음</option><option value="warm">따뜻하게</option><option value="cool">차가깝게</option><option value="retro">레트로하게</option></select></div>
-                </div>
+                    <div><label>✍️ 프롬프트:</label><input type="text" name="edit_positive_prompt" placeholder="프롬프트 입력"></div>
                 <div style="margin-top: 20px; text-align: center;">
                     <button type="submit" style="background-color: #6f42c1; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🎨 편집 실행</button>
                 </div>
@@ -146,17 +263,17 @@
             <fieldset>
                 <legend>영상 설정</legend>
                 <div class="flex-container">
-                    <div><label>📷 시작 이미지:</label><input type="file" name="start_image" required></div>
-                    <div><label>🤖 영상 모델:</label><select name="video_model"><option>SVD-XT (Stable Video Diffusion)</option><option>Runway Gen-2</option><option>AnimateDiff</option></select></div>
+                    <div><label>📷 이미지:</label><input type="file" name="video_image" required></div>
                 </div>
                 <div style="margin-top: 10px;">
                     <label>🎬 원하는 내용 (프롬프트):</label><br>
-                    <input type="text" name="video_prompt" style="width: 90%;" placeholder="예: 술잔에 얼음이 떨어지며 물방울이 튀는 슬로우 모션">
+                    <input type="text" name="video_positive_prompt" style="width: 90%;" placeholder="예: 술잔에 얼음이 떨어지며 물방울이 튀는 슬로우 모션">
                 </div>
                 <div class="flex-container" style="margin-top: 10px;">
-                    <div><label>⏱ 영상 길이:</label><select name="video_length"><option>2초</option><option>4초</option><option>5초</option></select></div>
-                    <div><label>🎞 화질(FPS):</label><select name="video_fps"><option>24 fps</option><option>30 fps</option><option>60 fps</option></select></div>
-                    <div><label>🏃‍♂️ 모션 강도:</label><input type="number" name="motion_bucket" value="127" min="1" max="255"></div>
+                    <div><label>⏱ 영상 길이:</label><select name="video_duration"><option value="4">4</option><option value="6">6</option><option value="8">8</option></select></div>
+                    <div><label>🎞 비율:</label><select name="video_ratio"><option value="16:9">16:9</option><option value="9:16">9:16</option></select></div>
+                    <div><label>🏃‍♂️ 화질:</label><select name="video_resolution"><option value="720p">720p</option><option value="1080p">1080p</option></select></div>
+                    <div><label>🔊 오디오 생성:</label><select name="video_generate_audio"><option value="true">예</option><option value="false">아니요</option></select></div>
                 </div>
                 <div style="margin-top: 20px; text-align: center;">
                     <button type="submit" style="background-color: #fd7e14; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">🎥 영상 생성 시작</button>
@@ -587,10 +704,22 @@
                 if(data.status === 'success') {
                     resultDiv.innerHTML = `
                         <h4>📊 분석 결과:</h4>
-                        <p>${data.analysis}</p>
+                        <p>${data.analysis_image}</p>
+                        <p>${data.analysis_color}</p>
+                        <p>${data.analysis_font}</p>
+                        <p>${data.analysis_model}</p>
+                        <p>${data.analysis_pose}</p>
+                        <p>${data.analysis_background}</p>
+                        <p>${data.analysis_lighting}</p>
+                        <p>${data.analysis_composition}</p>
+                        <p>${data.analysis_idea}</p>
                         <hr>
                         <h4>✍️ 추천 프롬프트:</h4>
-                        <p id="generatedPrompt" style="background: white; padding: 10px; border: 1px solid #ccc;">${data.prompt}</p>
+                        <p> ${data.analysis_positive}</p>
+                        <p> ${data.analysis_negative}</p>
+                        <hr>
+                        <h4> 추천 문구:</h4>
+                        <p>"${data.analysis_slogans}"</p>
                         <br>
                         <button type="button" onclick="applyPrompt()" style="background-color: #28a745; color: white; padding: 5px 15px; border: none; border-radius: 4px; cursor: pointer;">✨ 이 프롬프트로 이미지 생성하기</button>
                     `;

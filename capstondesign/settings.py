@@ -129,3 +129,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# 관리자 계정 생성 시 필요한 키 (초기값 0000)
+ADMIN_CREATION_KEY = "0000"
