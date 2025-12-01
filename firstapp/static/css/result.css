@@ -1,22 +1,24 @@
-/* result.css */
+/* result.css - 최종 수정본 */
 
+/* 전체 레이아웃 */
 .results-container {
     width: 100%;
-    /* main-content 패딩 등을 고려하여 화면 꽉 채우기 */
     min-height: calc(100vh - 80px);
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 40px;
     box-sizing: border-box;
+    background-color: #e9e9e9;
 }
 
+/* 흰색 카드 */
 .results-card {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1200px; /* 전체 너비 제한 */
     background-color: #ffffff;
     border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     padding: 40px;
     box-sizing: border-box;
     display: flex;
@@ -24,8 +26,8 @@
     gap: 20px;
 }
 
-.results-card h2 {
-    margin: 0;
+.card-header h2 {
+    margin: 0 0 20px 0;
     color: #333;
     font-size: 1.5rem;
     font-weight: 700;
@@ -35,136 +37,157 @@
 .content-wrapper {
     display: flex;
     gap: 30px;
-    /* 최소 높이 확보 (이미지가 없어도 찌그러지지 않게) */
-    min-height: 450px; 
+    /* 높이 고정 제거: 내용물에 따라 늘어나게 함 */
+    align-items: flex-start; /* 상단 정렬 */
 }
 
-/* --- 1. 갤러리 컬럼 (왼쪽) --- */
-.gallery-column {
-    flex: 2; /* 2:1 비율 */
+/* --- [왼쪽] 이미지 섹션 --- */
+.image-section {
+    flex: 1.5; /* 왼쪽 비율 1.5 */
+    /* 너비가 줄어들지 않도록 최소 너비 보장 */
+    min-width: 0; 
     display: flex;
     flex-direction: column;
 }
 
-.main-image-wrapper {
+/* 이미지가 들어가는 프레임 */
+.image-display-area {
+    position: relative;
     width: 100%;
-    height: 100%;
-    position: relative; /* ⭐ 자식(썸네일)의 기준점 */
-    background-color: #1a4b6e; /* 요청하신 파란 계열 배경색 */
+    /* 높이를 고정하지 않고 비율에 맡김, 대신 최대 높이 설정 */
+    aspect-ratio: 1/1; /* 정사각형 비율 유지 (필요시 16/9 등 변경) */
+    max-height: 600px; 
+    
+    background-color: #333; /* 이미지 로딩 전 배경 */
     border-radius: 10px;
-    overflow: hidden;
+    overflow: hidden; /* ⭐ 이미지가 튀어나오면 잘라냄 */
+    border: 1px solid #ddd;
+    
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px solid #333; /* 테두리 */
 }
 
+/* 메인 이미지 */
 #main-image {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* 비율 유지하며 꽉 차게 */
+    object-fit: contain; /* ⭐ 이미지가 잘리지 않고 비율 유지하며 안에 쏙 들어감 */
     display: block;
 }
 
-/* 썸네일 오버레이 (이미지 내부 하단) */
-.thumbnail-wrapper {
+/* 썸네일 오버레이 */
+.thumbnail-overlay {
     position: absolute;
     bottom: 15px;
     left: 15px;
     display: flex;
     gap: 10px;
     z-index: 10;
+    
+    /* 썸네일이 많으면 가로 스크롤 */
+    max-width: calc(100% - 30px);
+    overflow-x: auto;
+    padding-bottom: 5px; /* 스크롤바 공간 */
 }
 
-.thumbnail {
-    width: 70px;
-    height: 70px;
-    object-fit: cover;
+.thumb-item {
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0; /* 찌그러짐 방지 */
     border-radius: 5px;
     cursor: pointer;
-    border: 2px solid #333; /* 썸네일 테두리 */
-    opacity: 0.8;
-    transition: all 0.2s;
-    background-color: #fff;
+    border: 2px solid rgba(255,255,255,0.5);
+    overflow: hidden;
+    background-color: #000;
 }
 
-.thumbnail:hover {
-    opacity: 1.0;
-    transform: translateY(-2px);
+.thumb-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.thumbnail.active {
-    opacity: 1.0;
-    border-color: #fff; /* 선택된 것 하얀 테두리 */
-    box-shadow: 0 0 0 2px #ffffff; /* 이중 테두리 효과 (초록) */
+.thumb-item.active {
+    border-color: #4CAF50;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 
 
-/* --- 2. 추천 문구 컬럼 (오른쪽) --- */
-.recommend-column {
-    flex: 1; /* 1:2 비율 */
+/* --- [오른쪽] 텍스트 섹션 --- */
+.text-section {
+    flex: 1; /* 오른쪽 비율 1 */
+    /* 최소 너비 확보 (글자가 세로로 눌리지 않게 함) */
+    min-width: 300px; 
     display: flex;
     flex-direction: column;
 }
 
-.recommend-column h3 {
+.text-section h3 {
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     font-size: 1.1rem;
     color: #333;
 }
 
-.recommend-list {
+.text-box {
     background-color: #f8f9fa;
     border-radius: 10px;
     padding: 20px;
-    flex-grow: 1; /* 높이 채우기 */
-    overflow-y: auto;
+    
+    /* 높이를 이미지 영역과 비슷하게 맞추거나 내용만큼 늘림 */
+    min-height: 400px; 
+    max-height: 600px;
+    overflow-y: auto; /* 내용이 많으면 스크롤 */
+    border: 1px solid #eee;
 }
 
-.recommend-list p {
-    margin: 0 0 10px 0;
-    line-height: 1.6;
+.text-box p {
     color: #555;
-    word-break: keep-all;
+    line-height: 1.6;
+    margin: 0 0 10px 0;
+    word-break: keep-all; /* 단어 단위 줄바꿈 */
 }
 
 
-/* --- 3. 하단 액션 버튼 영역 --- */
-.action-buttons {
-    position: relative; /* 자식(우측 버튼) 절대 위치 기준 */
+/* --- [하단] 푸터 (버튼 영역) --- */
+.card-footer {
+    position: relative;
     display: flex;
-    justify-content: center; /* 중앙 정렬 (다운로드 버튼용) */
+    justify-content: center;
     align-items: center;
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #eee;
     height: 60px;
 }
-.center-group{
-    display: flex;
-    justify-content: center;
-    align-items: center;}
 
 /* 중앙 다운로드 버튼 */
-.download-btn-large {
-    background-color: #1a4b6e; /* 배경색 */
+.center-btn-group {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn-download {
+    background-color: #1a4b6e;
     color: white;
-    padding: 12px 60px;
-    border-radius: 30px; /* 둥근 캡슐 모양 */
+    padding: 12px 50px;
+    border-radius: 30px;
     font-size: 1.1rem;
     font-weight: 600;
     text-decoration: none;
-    border: 2px solid #000;
     transition: background-color 0.2s;
+    display: inline-block;
+    white-space: nowrap;
 }
-.download-btn-large:hover {
+.btn-download:hover {
     background-color: #143a55;
 }
 
 /* 우측 아이콘 버튼 그룹 */
-.right-group {
-    position: absolute; /* 부모 기준 우측 고정 */
+.right-icon-group {
+    position: absolute;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
@@ -172,7 +195,7 @@
     gap: 10px;
 }
 
-.action-btn {
+.btn-icon {
     width: 45px;
     height: 45px;
     border-radius: 50%;
@@ -180,17 +203,13 @@
     color: #333;
     border: none;
     cursor: pointer;
-    font-size: 1.2rem;
     display: flex;
     justify-content: center;
     align-items: center;
     text-decoration: none;
+    font-size: 1.2rem;
     transition: background-color 0.2s;
 }
-.action-btn:hover {
+.btn-icon:hover {
     background-color: #e0e0e0;
-}
-.action-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
 }

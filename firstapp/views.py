@@ -100,6 +100,19 @@ def generate_images(request):
     word_urls = []
 
     if request.method != "POST":
+        context = {
+            "settings": {
+                "product_type": request.GET.get("product_type", "소주"),
+                "theme": request.GET.get("theme", "해변"),
+                "mood": request.GET.get("mood", "따듯한"),
+                "placement": request.GET.get("placement", "테이블 위에 놓인"),
+                "prompt": request.GET.get("prompt", ""),
+                "extra_requirements": request.GET.get("extra_requirements", ""),
+                "model": request.GET.get("model", "flux"),
+                "aspect_ratio": request.GET.get("aspect_ratio", "16:9"),
+                "count": request.GET.get("count", "1"),
+            }
+        }
         return render(request, "main.html")
     
     if request.method == "POST":
@@ -116,7 +129,7 @@ def generate_images(request):
 
         # 안전하게 정수 변환
         try:
-            image_number = max(1, min(int(image_number), 4))  # 1~10 범위 제한
+            image_number = max(1, min(int(image_number), 10))  # 1~10 범위 제한
         except ValueError:
             image_number = 1  # 기본값
 
@@ -158,6 +171,7 @@ def generate_images(request):
 
             with open(full_path, "rb") as f:
                 # 1. 이미지 생성
+                f.seek(0)
                 output = None
                 for _ in range(image_number):
                     if model_choice == "flux":
@@ -175,7 +189,7 @@ def generate_images(request):
                             input={
                                 "model": "dev",
                                 "input_image": f,
-                                "prompt": full_prompt + "alcohol_beach"+"Do not create alcohol products",
+                                "prompt": full_prompt + ",alcohol_beach" + ",Do not create alcohol products",
                                 "go_fast": False,
                                 "lora_scale": 1,
                                 "megapixels": "1",
@@ -189,16 +203,24 @@ def generate_images(request):
                                 "num_inference_steps": 28
                             }
                         )
+                        if isinstance(output0, list):
+                            bg_url = str(output0[0])
+                        else:
+                            bg_url = str(output0)
+                        f.seek(0)
                         output1 = replicate.run(
                             "google/nano-banana-pro",
                             input={
                                 "prompt" : "주류 광고 이미지를 제작합니다. 배경 이미지와 제품 이미지를 합성하세요. 제품의 일관성을 유지하세요. ",
-                                "input_image": [f, output0],
+                                "image_input": [f, bg_url],
                                 "aspect_ratio": aspect_ratio,
                                 "output_format" : "png"
                             }
                         )
-                        output = output1[0]
+                        if isinstance(output1, list) and len(output1) > 0:
+                            output = output1[0]  # 리스트면 첫 번째 요소
+                        else:
+                            output = output1
                     elif model_choice=="nanobanana":
                         output = client.run(
                             "google/nano-banana-pro",
