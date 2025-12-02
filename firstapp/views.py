@@ -3,11 +3,12 @@ import replicate
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.files.storage import default_storage
 from dotenv import load_dotenv
-from .models import GeneratedImage, UserProfile
+from .models import GeneratedImage, UserProfile, Preset
 from django.contrib.auth import logout, login
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm
 from django.contrib.auth.models import User
+from django.conf import settings
 
 def home_view(request):
     context = {}
@@ -24,6 +25,21 @@ def delete_account_view(request):
 def view_user_profile_view(request):
     context = {}
     return render(request, "view_user_profile.html")
+
+# 2. 이미지 분석 페이지 (로그인 필수)
+@login_required(login_url='login') 
+def analysis_view(request):
+    return render(request, "analysis.html")
+
+# 3. 이미지 편집 페이지 (로그인 필수)
+@login_required(login_url='login')
+def editing_view(request):
+    return render(request, "editing.html")
+
+# 4. 영상 생성 페이지 (로그인 필수)
+@login_required(login_url='login')
+def video_view(request):
+    return render(request, "video.html")
 
 @login_required # 로그인을 해야만 접근 가능
 def profile(request):
@@ -95,6 +111,12 @@ def flatten_output2(o):
         return ''.join(s for s in o if s).strip()
     return (o or '').strip()
 
+def get_output_url(output):
+    """Replicate 결과를 안전하게 문자열 URL로 변환"""
+    if not output: return None
+    if isinstance(output, list) and output: return str(output[0])
+    return str(output)
+
 def generate_images(request):
     image_urls = []
     word_urls = []
@@ -118,12 +140,12 @@ def generate_images(request):
     if request.method == "POST":
         # GET POST VALUES
         product_type = request.POST.get("product_type", "맥주")
-        theme = request.POST.get("theme", "")
-        mood = request.POST.get("mood", "")
-        placement = request.POST.get("placement", "")
+        theme = request.POST.get("theme", "식당")
+        mood = request.POST.get("mood", "신나는")
+        placement = request.POST.get("placement", "테이블 위에 놓인")
         user_prompt = request.POST.get("prompt", "")
         aspect_ratio = request.POST.get("aspect_ratio", "16:9")
-        image_number = request.POST.get("count", "4")
+        image_number = request.POST.get("count", "1")
         uploaded_file = request.FILES.get("image")
         model_choice = request.POST.get("model", "flux").lower()
 
@@ -152,8 +174,10 @@ def generate_images(request):
         """.strip()
         
         word_prompt = f"""
-        위 상황을 기반으로, 술 마케팅에 어울리는 간결하고 창의적인 한국어 한 줄 문장을 추천해줘.
-        상황: {mood} 분위기의 {theme}에서, {product_type} 종류의 술이 {placement}에 위치함. {user_prompt}
+        너의 역할은 카피라이터야.
+        상황을 기반으로, 술 마케팅에 어울리는 간결하고 감각적인 한국어 광고 문구 3가지를 추천해줘.
+        상황: {mood} 분위기의 {theme} 배경에서, 해당 {product_type}이(가) {placement}에 놓여 있습니다. {user_prompt}
+        제약 : 서론 없이 문구 3개만 줄바꿈으로 출력.
         """.strip()
 
         translated_prompt = client.run(
@@ -301,6 +325,93 @@ def generate_images(request):
         "image_urls": image_urls,
         "word_urls": word_urls
     })"""
+
+# views.py
+
+from .models import GeneratedImage, UserProfile, Preset, AnalyzedImage # AnalyzedImage 추가
+
+# ... (기존 코드들) ...
+
+@login_required(login_url='login')
+def analysis_view(request):
+    if request.method != "POST":
+        return render(request, "analysis.html")
+
+    uploaded_file = request.FILES.get("target_image")
+    if not uploaded_file:
+        return render(request, "analysis.html", {"error": "이미지를 선택해주세요."})
+
+    # 1. 파일 저장 및 DB 레코드 생성
+    analyzed_obj = AnalyzedImage(user=request.user, original_image=uploaded_file)
+    analyzed_obj.save()
+    
+    file_path = analyzed_obj.original_image.path
+
+    # 분석 결과 데이터 (기본값)
+    parsed_data = {
+        "product_type": "맥주", "theme": "해변", "mood": "신나는", "placement": "테이블 위에 놓인"
+    }
+
+    try:
+        with open(file_path, "rb") as f:
+            # ⭐ [핵심] 우리가 가진 선택지 리스트를 프롬프트에 포함시킵니다.
+            # LLaVA에게 이 중에서만 고르라고 시킵니다.
+            reasoning_effort = request.POST.get('reasoning_effort', 'minimal')
+            verbosity = request.POST.get('verbosity', 'medium')
+            system_prompt = "You are a professional liquor marketing expert and photographer. Your task is to analyze the provided image and generate a complete marketing brief and AI image generation prompts"
+            prompt = """
+            Analyze this image for a liquor advertisement and categorize it exactly into the options provided below.
+            Output must be in Korean.
+
+            1. Product Type (Choose one): [소주, 맥주, 와인, 위스키, 막걸리, 칵테일]
+            2. Theme (Choose one): [해변, 바, 집 (홈파티), 포장마차, 고급 식당, 캠핑장]
+            3. Mood (Choose one): [따듯한, 차가운, 신나는, 세련된, 아련한, 역동적인]
+            4. Placement (Choose one): [테이블 위, 사람 손, 바에 진열]
+            5. Recommended Prompt: (Write a detailed prompt to generate a similar image in Korean)
+            
+            Format your response exactly like this:
+            Product: [Value]
+            Theme: [Value]
+            Mood: [Value]
+            Placement: [Value]
+            Prompt: [Value]
+            """
+            
+            output = client.run(
+                "openai/gpt-5",
+                input=
+                    {"prompt": prompt,
+                        "image_input": f,
+                        "system_prompt": system_prompt,
+                        "reasoning_effort": reasoning_effort,
+                        "verbosity": verbosity
+                }
+            )
+            analysis_text = flatten_output(output)
+            
+            # 3. DB 업데이트
+            analyzed_obj.analysis_text = analysis_text
+            analyzed_obj.save()
+
+            # 4. 결과 텍스트를 파싱해서 딕셔너리로 변환 (바로 적용하기 위해)
+            # 예: "Product: 맥주" -> {"product_type": "맥주"}
+            lines = analysis_text.split('\n')
+            for line in lines:
+                if "Product:" in line: parsed_data['product_type'] = line.split("Product:")[1].strip()
+                elif "Theme:" in line: parsed_data['theme'] = line.split("Theme:")[1].strip()
+                elif "Mood:" in line: parsed_data['mood'] = line.split("Mood:")[1].strip()
+                elif "Placement:" in line: parsed_data['placement'] = line.split("Placement:")[1].strip()
+                elif "Prompt:" in line: parsed_data['user_prompt'] = line.split("Prompt:")[1].strip()
+
+    except Exception as e:
+        print(f"Analysis Error: {e}")
+        return render(request, "analysis.html", {"error": "분석 중 오류가 발생했습니다."})
+
+    # 5. 결과 페이지로 이동 (분석된 옵션 값도 같이 넘김)
+    return render(request, "result_analysis.html", {
+        "analysis": analyzed_obj,
+        "parsed_data": parsed_data # 파싱된 데이터 전달
+    })
 
 def signup(request):
     if request.method == 'POST':

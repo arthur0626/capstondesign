@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}이미지 분석{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
+    
+    <div class="card-box" style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+        <h2 style="text-align: center; color: #333; margin-bottom: 30px;">📊 AI 주류 이미지 분석</h2>
+        
+        <form id="analysisForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <fieldset style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <legend style="font-weight: bold; padding: 0 10px;">1. 이미지 첨부 (필수)</legend>
+                <div>
+                    <label>분석할 이미지:</label>
+                    <input type="file" name="target_image" required style="display: block; margin-top: 10px;">
+                </div>
+            </fieldset>
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="submit" style="background-color: #17a2b8; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 1.1em;">
+                    🔍 분석 시작
+                </button>
+            </div>
+        </form>
+        
+        <div id="analysisResult" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 30px; display: none;"></div>
+    </div>
+
+</div>
+
+<script>
+    // 분석 관련 스크립트만 가져옴
+    document.getElementById('analysisForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const resultDiv = document.getElementById('analysisResult');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '⏳ 이미지를 분석하고 있습니다...';
+        
+        const formData = new FormData(this);
+        fetch("{% url 'image_analyze' %}", { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                // ... (성공 시 결과 표시 로직) ...
+                resultDiv.innerHTML = `<h4>📊 분석 결과:</h4><p>${data.analysis_image}</p>...`;
+            } else { 
+                resultDiv.innerHTML = `<p style="color:red;">오류: ${data.message}</p>`; 
+            }
+        });
+    });
+    
+    // 프롬프트 적용 함수 (메인 페이지로 이동해야 함)
+    function applyPrompt() {
+        // ... (localStorage 등을 이용해 데이터를 메인으로 넘겨주는 로직 필요) ...
+        alert("이 기능은 메인 페이지와 연동이 필요합니다.");
+        window.location.href = "{% url 'main' %}";
+    }
+</script>
+{% endblock %}

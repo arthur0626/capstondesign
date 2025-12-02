@@ -22,6 +22,9 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.generate_images, name='main'),
+    path('analysis/', views.analysis_view, name='analysis'),
+    path('editing/', views.editing_view, name='editing'),
+    path('video/', views.video_view, name='video'),
     # 메인 화면
     path('home/', views.home_view, name='home'),
     # 로그인/로그아웃/회원가입

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}이미지 편집{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
+    
+    <div class="card-box" style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+        <h2 style="text-align: center; color: #333; margin-bottom: 30px;">🎨 AI 이미지 편집</h2>
+        
+        <form id="editForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <fieldset style="border: 1px solid #ddd; border-radius: 8px; padding: 15px;">
+                <legend style="font-weight: bold;">편집 설정</legend>
+                <div><label>📷 대상 이미지:</label><input type="file" name="edit_image" required></div>
+                <div style="margin-top: 15px;"><label>✍️ 프롬프트:</label><input type="text" name="edit_positive_prompt" placeholder="프롬프트 입력" style="width: 100%; padding: 8px;"></div>
+            </fieldset>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="submit" style="background-color: #6f42c1; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer;">
+                    🎨 편집 실행
+                </button>
+            </div>
+        </form>
+        
+        <div id="editResult" style="text-align: center; margin-top: 30px;"></div>
+    </div>
+
+</div>
+
+<script>
+    // handleRealSubmit 함수 재정의 또는 가져오기
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // ... (편집 요청 AJAX 로직) ...
+        // fetch("{% url 'image_edit' %}", ...)
+    });
+</script>
+{% endblock %}
