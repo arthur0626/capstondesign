@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}영상 생성 결과{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/result_video.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="video-result-container">
+    <div class="result-card">
+        <div class="card-header">
+            <h2>🎥 영상 생성 결과</h2>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="video-section">
+                <div class="video-display-area">
+                    {% if video_url %}
+                        <video controls autoplay loop muted playsinline>
+                            <source src="{{ video_url }}" type="video/mp4">
+                            브라우저가 비디오 태그를 지원하지 않습니다.
+                        </video>
+                    {% else %}
+                        <div class="placeholder">생성된 영상이 없습니다.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="button-group">
+                <a href="{% url 'video' %}" class="btn-action btn-retry">
+                    <span>🔄 다른 영상 만들기</span>
+                </a>
+
+                {% if video_url %}
+                <a href="{{ video_url }}" download="generated_video.mp4" class="btn-action btn-download">
+                    <span>⬇️ 영상 다운로드</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

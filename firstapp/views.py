@@ -342,10 +342,14 @@ def analysis_view(request):
         return render(request, "analysis.html", {"error": "이미지를 선택해주세요."})
 
     # 1. 파일 저장 및 DB 레코드 생성
-    analyzed_obj = AnalyzedImage(user=request.user, original_image=uploaded_file)
-    analyzed_obj.save()
+    #analyzed_obj = AnalyzedImage(user=request.user, original_image=uploaded_file)
+    #analyzed_obj.save()
     
-    file_path = analyzed_obj.original_image.path
+    file_path = default_storage.save(f"temp/analysis/{uploaded_file.name}", uploaded_file)
+    full_path = default_storage.path(file_path)
+    file_url = default_storage.url(file_path) # 템플릿에서 보여줄 URL
+
+    analysis_text = ""
 
     # 분석 결과 데이터 (기본값)
     parsed_data = {
@@ -390,8 +394,9 @@ def analysis_view(request):
             analysis_text = flatten_output(output)
             
             # 3. DB 업데이트
-            analyzed_obj.analysis_text = analysis_text
-            analyzed_obj.save()
+            #analyzed_obj.analysis_text = analysis_text
+            
+            #analyzed_obj.save()
 
             # 4. 결과 텍스트를 파싱해서 딕셔너리로 변환 (바로 적용하기 위해)
             # 예: "Product: 맥주" -> {"product_type": "맥주"}
@@ -409,9 +414,136 @@ def analysis_view(request):
 
     # 5. 결과 페이지로 이동 (분석된 옵션 값도 같이 넘김)
     return render(request, "result_analysis.html", {
-        "analysis": analyzed_obj,
+        "original_iamge_url":file_url,
+        "analysis_text": lines,
         "parsed_data": parsed_data # 파싱된 데이터 전달
     })
+
+@login_required(login_url='login')
+def editing_view(request):
+    # 1. [GET] 편집 폼 페이지 보여주기
+    if request.method != "POST":
+        return render(request, "editing.html")
+
+    # 2. [POST] 편집 로직 실행
+    uploaded_file = request.FILES.get("edit_image")
+    user_prompt = request.POST.get("edit_positive_prompt")
+
+    if not uploaded_file:
+        return render(request, "editing.html", {"error": "편집할 이미지를 첨부해주세요."})
+    
+    if not user_prompt:
+        return render(request, "editing.html", {"error": "어떻게 편집할지 내용을 입력해주세요."})
+
+    # 파일 임시 저장 (Replicate에 보내기 위함, DB 저장 X)
+    # media/temp/edit/ 폴더에 저장
+    file_path = default_storage.save(f"temp/edit/{uploaded_file.name}", uploaded_file)
+    full_path = default_storage.path(file_path)
+    
+    # 템플릿에 보여줄 원본 이미지 URL
+    original_image_url = default_storage.url(file_path) 
+    
+    edited_image_url = None
+
+    try:
+        with open(full_path, "rb") as f:
+            # ⭐ Replicate 모델 호출 (Instruct-Pix2Pix)
+            output = client.run(
+                "timothybrooks/instruct-pix2pix:30c1d0b916a6f8efce20493f5d61ee27491ab2a60437c13c588468b9810ec23f",
+                input={
+                    "image": f,
+                    "prompt": user_prompt,
+                    "num_inference_steps": 20,
+                    "image_guidance_scale": 1.5,
+                }
+            )
+            
+            # 결과 URL 추출 (헬퍼 함수 사용)
+            edited_image_url = get_output_url(output)
+
+    except Exception as e:
+        print(f"Editing Error: {e}")
+        return render(request, "editing.html", {"error": "이미지 편집 중 오류가 발생했습니다."})
+    
+    finally:
+        # (선택 사항) 임시 파일 삭제를 원하면 주석 해제
+        # default_storage.delete(file_path)
+        pass
+
+    # 3. 결과 페이지로 이동 (URL과 프롬프트만 전달)
+    return render(request, "result_editing.html", {
+        "original_image_url": original_image_url,
+        "edited_image_url": edited_image_url,
+        "prompt": user_prompt
+    })
+
+@login_required(login_url='login')
+def video_view(request):
+    # 1. [GET] 입력 폼 보여주기
+    if request.method != "POST":
+        return render(request, "video.html")
+
+    # 2. [POST] 영상 생성 요청 처리
+    uploaded_file = request.FILES.get("video_image")
+    
+    if not uploaded_file:
+        return render(request, "video.html", {"error": "이미지를 선택해주세요."})
+
+    # 파일 임시 저장
+    file_path = default_storage.save(f"temp/video/{uploaded_file.name}", uploaded_file)
+    full_path = default_storage.path(file_path)
+    
+    video_url = None
+
+    try:
+        with open(full_path, "rb") as f:
+            # 사용자 입력값 가져오기 (video.html의 name과 일치)
+            video_model = request.POST.get('video_model', 'google/veo-3.1') # 기본값 설정
+            prompt = request.POST.get('video_positive_prompt', 'Animate this image')
+            
+            # 파라미터 형변환
+            try:
+                duration = int(request.POST.get('video_duration', '4'))
+            except ValueError:
+                duration = 4
+                
+            aspect_ratio = request.POST.get('video_ratio', '16:9')
+            resolution = request.POST.get('video_resolution', '720p')
+            
+            # boolean 변환
+            audio_val = request.POST.get('video_generate_audio', 'false')
+            generate_audio = True if audio_val == 'true' else False
+
+            # Replicate API 호출
+            # (Google Veo 등의 모델이 사용하는 입력 파라미터 구조에 맞게 전달)
+            # 만약 모델이 duration 등을 지원하지 않으면 input 딕셔너리에서 제외해야 할 수도 있습니다.
+            # 여기서는 사용자 의도대로 모든 옵션을 전달합니다.
+            output = client.run(
+                video_model,
+                input={
+                    "image": f,
+                    "prompt": prompt,
+                    "aspect_ratio": aspect_ratio,
+                    "duration": duration,
+                    "resolution": resolution,
+                    "generate_audio": generate_audio
+                    # 모델에 따라 fps 등 추가 파라미터가 필요할 수 있음
+                }
+            )
+            
+            # 결과 URL 추출
+            video_url = get_output_url(output)
+
+    except Exception as e:
+        print(f"Video Generation Error: {e}")
+        return render(request, "video.html", {"error": f"영상 생성 중 오류가 발생했습니다: {str(e)}"})
+    
+    finally:
+        # 임시 파일 삭제 (필요시)
+        pass
+
+    # 3. 결과 페이지로 이동
+    return render(request, "result_video.html", {"video_url": video_url})
 
 def signup(request):
     if request.method == 'POST':

@@ -1,15 +1,17 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block extra_css %}...{% endblock %}
-
 {% block title %}분석 결과{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/result_analysis.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="analysis-container">
     <div class="left-panel">
         <h3 style="margin-bottom: 20px;">분석된 이미지 결과</h3>
-        <img src="{{ analysis.original_image.url }}" class="uploaded-img" alt="분석 대상">
+        <img src="{{ analysis.original_image_url.url }}" class="uploaded-img" alt="분석 대상">
         
         <div class="btn-group">
             <a href="{% url 'analysis' %}" class="btn btn-back">⬅ 다시 분석</a>

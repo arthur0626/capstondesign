@@ -1,0 +1,110 @@
+.analysis-container {
+        max-width: 1100px;
+        margin: 40px auto;
+        display: flex;
+        gap: 40px;
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        align-items: flex-start; /* 상단 정렬 */
+    }
+    
+    /* 왼쪽 패널 (이미지) */
+    .left-panel {
+        flex: 1;
+        text-align: center;
+        position: sticky; /* 스크롤 시 고정 (선택 사항) */
+        top: 20px;
+    }
+
+    .uploaded-img {
+        width: 100%;
+        max-height: 500px;
+        object-fit: contain;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        background-color: #f8f9fa;
+    }
+
+    .btn-group {
+        margin-top: 20px;
+    }
+
+    .btn-back {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+    .btn-back:hover {
+        background-color: #5a6268;
+    }
+
+    /* 오른쪽 패널 (리포트) */
+    .right-panel {
+        flex: 1.2;
+    }
+
+    .report-box {
+        background-color: #f8f9fa;
+        padding: 30px;
+        border-radius: 15px;
+        border: 1px solid #eee;
+    }
+
+    .report-box ul li {
+        margin-bottom: 10px;
+        font-size: 1.05rem;
+        color: #333;
+    }
+    
+    .report-box strong {
+        color: #1a4b6e; /* 강조색 */
+        width: 140px;
+        display: inline-block;
+    }
+
+    /* 메인 생성 버튼 */
+    .btn-main {
+        background-color: #17a2b8; /* 분석 버튼과 동일한 톤 */
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+    .btn-main:hover {
+        background-color: #138496;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(23, 162, 184, 0.3);
+    }
+
+    /* 원본 로그 보기 (details) */
+    details summary {
+        list-style: none; /* 화살표 커스텀을 위해 기본 스타일 제거 */
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    details summary::after {
+        content: '▼';
+        font-size: 0.8em;
+    }
+    details[open] summary::after {
+        content: '▲';
+    }
+    pre {
+        background: #333;
+        color: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+    }

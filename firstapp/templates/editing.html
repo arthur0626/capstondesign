@@ -3,38 +3,62 @@
 
 {% block title %}이미지 편집{% endblock %}
 
-{% block content %}
-<div class="page-container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
-    
-    <div class="card-box" style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-        <h2 style="text-align: center; color: #333; margin-bottom: 30px;">🎨 AI 이미지 편집</h2>
-        
-        <form id="editForm" enctype="multipart/form-data">
-            {% csrf_token %}
-            <fieldset style="border: 1px solid #ddd; border-radius: 8px; padding: 15px;">
-                <legend style="font-weight: bold;">편집 설정</legend>
-                <div><label>📷 대상 이미지:</label><input type="file" name="edit_image" required></div>
-                <div style="margin-top: 15px;"><label>✍️ 프롬프트:</label><input type="text" name="edit_positive_prompt" placeholder="프롬프트 입력" style="width: 100%; padding: 8px;"></div>
-            </fieldset>
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/editing.css' %}">
+{% endblock %}
 
-            <div style="text-align: center; margin-top: 30px;">
-                <button type="submit" style="background-color: #6f42c1; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer;">
-                    🎨 편집 실행
-                </button>
-            </div>
-        </form>
-        
-        <div id="editResult" style="text-align: center; margin-top: 30px;"></div>
+{% block content %}
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <h2>AI가 이미지를 편집하고 있습니다...</h2>
+        <p>잠시만 기다려주세요.</p>
     </div>
 
-</div>
+    <div class="editing-container">
+        <div class="editing-card">
+            <div class="card-header">
+                <h2>AI 이미지 편집</h2>
+            </div>
+            
+            <form id="editForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <fieldset class="form-section">
+                    <legend>1. 편집할 이미지 (필수)</legend>
+                    <div class="input-wrapper">
+                        <input type="file" name="edit_image" id="edit_image" required>
+                    </div>
+                </fieldset>
 
-<script>
-    // handleRealSubmit 함수 재정의 또는 가져오기
-    document.getElementById('editForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        // ... (편집 요청 AJAX 로직) ...
-        // fetch("{% url 'image_edit' %}", ...)
-    });
-</script>
+                <fieldset class="form-section">
+                    <legend>2. 편집 요청사항</legend>
+                    <div class="input-wrapper">
+                        <label for="edit_positive_prompt">어떻게 바꿀까요?</label>
+                        <input type="text" name="edit_positive_prompt" id="edit_positive_prompt" 
+                               placeholder="예: 배경을 해변으로 바꿔줘, 남자를 할아버지로 바꿔줘" required>
+                    </div>
+                </fieldset>
+
+                <div class="form-footer">
+                    <button type="submit" class="btn-submit">
+                        편집 실행
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 폼 제출 시 로딩 화면 표시
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('edit_image');
+            const promptInput = document.getElementById('edit_positive_prompt');
+            
+            // 간단한 유효성 검사 후 로딩 표시
+            if (fileInput.files.length > 0 && promptInput.value.trim() !== "") {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                this.querySelector('button[type="submit"]').disabled = true;
+            }
+        });
+    </script>
 {% endblock %}

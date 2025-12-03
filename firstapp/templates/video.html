@@ -3,37 +3,101 @@
 
 {% block title %}영상 생성{% endblock %}
 
-{% block content %}
-<div class="page-container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
-    
-    <div class="card-box" style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-        <h2 style="text-align: center; color: #333; margin-bottom: 30px;">🎥 광고 영상 생성</h2>
-        
-        <form id="videoForm" enctype="multipart/form-data">
-            {% csrf_token %}
-            <fieldset style="border: 1px solid #ddd; border-radius: 8px; padding: 15px;">
-                <legend style="font-weight: bold;">영상 설정</legend>
-                <div><label>📷 이미지:</label><input type="file" name="video_image" required></div>
-                </fieldset>
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/video.css' %}">
+{% endblock %}
 
-            <div style="text-align: center; margin-top: 30px;">
-                <button type="submit" style="background-color: #fd7e14; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer;">
-                    🎥 영상 생성 시작
-                </button>
-            </div>
-        </form>
-        
-        <div id="videoResult" style="text-align: center; margin-top: 30px;"></div>
+{% block content %}
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <h2>🎥 AI가 영상을 생성하고 있습니다...</h2>
+        <p>영상 생성은 2~5분 정도 소요될 수 있습니다.</p>
+        <p style="font-size: 0.9rem; opacity: 0.8;">창을 닫지 말고 기다려주세요.</p>
     </div>
 
-</div>
+    <div class="video-container">
+        <div class="video-card">
+            <div class="card-header">
+                <h2>🎥 광고 영상 생성</h2>
+                <p>원하는 설정으로 제품 영상을 제작합니다.</p>
+            </div>
+            
+            <form id="videoForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <fieldset class="form-section">
+                    <legend>1. 시작 이미지 (필수)</legend>
+                    <div class="input-wrapper">
+                        <label for="video_image">📷 이미지:</label>
+                        <input type="file" name="video_image" id="video_image" required accept="image/*">
+                    </div>
+                </fieldset>
 
-<script>
-    // handleRealSubmit 함수 재정의 또는 가져오기
-    document.getElementById('videoForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        // ... (영상 요청 AJAX 로직) ...
-        // fetch("{% url 'image_to_video' %}", ...)
-    });
-</script>
+                <fieldset class="form-section">
+                    <legend>2. 영상 상세 설정</legend>
+                    
+                    <div class="input-wrapper">
+                         <label>🤖 모델:</label>
+                         <select name="video_model">
+                             <option value="google/veo-3.1" selected>Google Veo 3.1 (기본)</option>
+                         </select>
+                    </div>
+
+                    <div class="input-wrapper" style="margin-top: 15px;">
+                        <label>🎬 원하는 내용 (프롬프트):</label>
+                        <input type="text" name="video_positive_prompt" placeholder="예: 술잔에 얼음이 떨어지며 물방울이 튀는 슬로우 모션" style="width: 100%;">
+                    </div>
+
+                    <div class="input-wrapper" style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <label>⏱ 영상 길이:</label>
+                            <select name="video_duration">
+                                <option value="4">4초</option>
+                                <option value="6">6초</option>
+                                <option value="8">8초</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>🎞 비율:</label>
+                            <select name="video_ratio">
+                                <option value="16:9">16:9</option>
+                                <option value="9:16">9:16</option>
+                                <option value="1:1">1:1</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>🏃‍♂️ 화질:</label>
+                            <select name="video_resolution">
+                                <option value="720p">720p</option>
+                                <option value="1080p">1080p</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>🔊 오디오 생성:</label>
+                            <select name="video_generate_audio">
+                                <option value="true">예</option>
+                                <option value="false" selected>아니요</option>
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="form-footer">
+                    <button type="submit" class="btn-submit">
+                        🎥 영상 생성 시작
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('videoForm').addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('video_image');
+            if (fileInput.files.length > 0) {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                this.querySelector('button[type="submit"]').disabled = true;
+            }
+        });
+    </script>
 {% endblock %}
