@@ -25,30 +25,27 @@
           <ul>
             <li>
               <a href="{% url 'home' %}">
-                <span class="nav-text">main</span>
+                <span class="nav-text">홈</span>
               </a>
             </li>
             <li>
               <a href="{% url 'main' %}">
-                <span class="nav-text">create image</span>
+                <span class="nav-text">이미지 생성</span>
               </a>
             </li>
             {% if user.is_authenticated %}
                 <li>
                     <a href="{% url 'analysis' %}">
-                        <span class="icon">📊</span>
                         <span class="nav-text">이미지 분석</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'editing' %}">
-                        <span class="icon">🎨</span>
                         <span class="nav-text">이미지 편집</span>
                     </a>
                 </li>
                 <li>
                     <a href="{% url 'video' %}">
-                        <span class="icon">🎥</span>
                         <span class="nav-text">영상 생성</span>
                     </a>
                 </li>

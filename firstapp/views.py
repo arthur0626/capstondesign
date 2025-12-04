@@ -207,24 +207,15 @@ def generate_images(request):
                                 "aspect_ratio": aspect_ratio,
                             }
                         )
-                    elif model_choice == "alcohol_beach":
+                    elif model_choice == "custom_beach":
                         output0 = replicate.run(
                             "clipnpaper/alcohol_beach:5c3ef136e48fd434e8fa47c9deaad6d12527a61757305ca01169e58fc5b19ef5",
                             input={
                                 "model": "dev",
                                 "input_image": f,
-                                "prompt": full_prompt + ",alcohol_beach" + ",Do not create alcohol products",
-                                "go_fast": False,
-                                "lora_scale": 1,
-                                "megapixels": "1",
-                                "num_outputs": 1,
+                                "prompt": ",alcohol_beach background" +full_prompt+ ",Do not create alcohol products",
+                                "mask" : f,
                                 "aspect_ratio": aspect_ratio,
-                                "output_format": "png",
-                                "guidance_scale": 3,
-                                "output_quality": 80,
-                                "prompt_strength": 0.8,
-                                "extra_lora_scale": 1,
-                                "num_inference_steps": 28
                             }
                         )
                         if isinstance(output0, list):
@@ -245,6 +236,134 @@ def generate_images(request):
                             output = output1[0]  # 리스트면 첫 번째 요소
                         else:
                             output = output1
+                    elif model_choice == "custom_bar":
+                        output0 = replicate.run(
+                            "clipnpaper/alcohol_cozy_bar:8f3dff77476698778b50f4d7a1112e10f03496d0f19ce38c583ab16cecec6fba",
+                            input={
+                                "model": "dev",
+                                #"input_image": f,
+                                "prompt": ",cozy_bar background" +full_prompt+ "\n keep the provided bottle exactly as it is, "
+                                                            "do not alter the bottle. Do not alter, redraw, re-create, re-interpret,"
+                                                            " or modify the bottle, label, logo, text, shape, typography, or any branding elements in any way.",
+                                "mask" : f,
+                                "aspect_ratio": aspect_ratio,
+                            }
+                        )
+                        if isinstance(output0, list):
+                            bg_url = str(output0[0])
+                        else:
+                            bg_url = str(output0)
+                        f.seek(0)
+                        output1 = replicate.run(
+                            "google/nano-banana-pro",
+                            input={
+                                "prompt" : "주류 광고 이미지를 제작합니다. 배경 이미지와 제품 이미지를 합성하세요. 제품의 일관성을 유지하세요. ",
+                                "image_input": [f, bg_url],
+                                "aspect_ratio": aspect_ratio,
+                                "output_format" : "png"
+                            }
+                        )
+                        if isinstance(output1, list) and len(output1) > 0:
+                            output = output1[0]  # 리스트면 첫 번째 요소
+                        else:
+                            output = output1
+
+                    elif model_choice == "custom_stylish":
+                        output0 = replicate.run(
+                            "clipnpaper/alcohol_stylish:b320a707aabb4390f663d2e834c30b072b3b1ad0d294182b1c4eec329818074f",
+                            input={
+                                "model": "dev",
+                                #"input_image": f,
+                                "prompt": "stylish background" +full_prompt+ "\n keep the provided bottle exactly as it is, "
+                                                            "do not alter the bottle. Do not alter, redraw, re-create, re-interpret,"
+                                                            " or modify the bottle, label, logo, text, shape, typography, or any branding elements in any way.",
+                                "mask" : f,
+                                "aspect_ratio": aspect_ratio,
+                            }
+                        )
+                        if isinstance(output0, list):
+                            bg_url = str(output0[0])
+                        else:
+                            bg_url = str(output0)
+                        f.seek(0)
+                        output1 = replicate.run(
+                            "google/nano-banana-pro",
+                            input={
+                                "prompt" : "주류 광고 이미지를 제작합니다. 배경 이미지와 제품 이미지를 합성하세요. 제품의 일관성을 유지하세요. ",
+                                "image_input": [f, bg_url],
+                                "aspect_ratio": aspect_ratio,
+                                "output_format" : "png"
+                            }
+                        )
+                        if isinstance(output1, list) and len(output1) > 0:
+                            output = output1[0]  # 리스트면 첫 번째 요소
+                        else:
+                            output = output1
+
+                    elif model_choice == "custom_bbq":
+                        output0 = replicate.run(
+                            "clipnpaper/alcohol_bbq:81520f34f3770086c356c923a1101026bf77cbbe0bc84c3d2d9a496fa81735fa",
+                            input={
+                                "model": "dev",
+                                #"input_image": f,
+                                "prompt": "BBQ background" +full_prompt+ "\n keep the provided bottle exactly as it is, "
+                                                            "do not alter the bottle. Do not alter, redraw, re-create, re-interpret,"
+                                                            " or modify the bottle, label, logo, text, shape, typography, or any branding elements in any way.",
+                                "mask" : f,
+                                "aspect_ratio": aspect_ratio,
+                            }
+                        )
+                        if isinstance(output0, list):
+                            bg_url = str(output0[0])
+                        else:
+                            bg_url = str(output0)
+                        f.seek(0)
+                        output1 = replicate.run(
+                            "google/nano-banana-pro",
+                            input={
+                                "prompt" : "주류 광고 이미지를 제작합니다. 배경 이미지와 제품 이미지를 합성하세요. 제품의 일관성을 유지하세요. ",
+                                "image_input": [f, bg_url],
+                                "aspect_ratio": aspect_ratio,
+                                "output_format" : "png"
+                            }
+                        )
+                        if isinstance(output1, list) and len(output1) > 0:
+                            output = output1[0]  # 리스트면 첫 번째 요소
+                        else:
+                            output = output1
+
+                    elif model_choice == "custom_pojangmacha":
+                        output0 = replicate.run(
+                            "clipnpaper/pojangmacha:5470dfeb19844ba06245c7e22214b7cdbce9e6034e8edcad74d9ef5a0c61a5cd",
+                            input={
+                                "model": "dev",
+                                #"input_image": f,
+                                "prompt": "pojangmacha background" +full_prompt+ "\n keep the provided bottle exactly as it is, "
+                                                            "do not alter the bottle. Do not alter, redraw, re-create, re-interpret,"
+                                                            " or modify the bottle, label, logo, text, shape, typography, or any branding elements in any way.",
+                                "mask" : f,
+                                "aspect_ratio": aspect_ratio,
+                            }
+                        )
+                        if isinstance(output0, list):
+                            bg_url = str(output0[0])
+                        else:
+                            bg_url = str(output0)
+                        f.seek(0)
+                        output1 = replicate.run(
+                            "google/nano-banana-pro",
+                            input={
+                                "prompt" : "주류 광고 이미지를 제작합니다. 배경 이미지와 제품 이미지를 합성하세요. 제품의 일관성을 유지하세요. ",
+                                "image_input": [f, bg_url],
+                                "aspect_ratio": aspect_ratio,
+                                "output_format" : "png"
+                            }
+                        )
+                        if isinstance(output1, list) and len(output1) > 0:
+                            output = output1[0]  # 리스트면 첫 번째 요소
+                        else:
+                            output = output1
+
                     elif model_choice=="nanobanana":
                         output = client.run(
                             "google/nano-banana-pro",
@@ -255,6 +374,7 @@ def generate_images(request):
                                 "output_format": "png"
                             }
                         )
+
                     generated_url = None
                     if isinstance(output, list) and output:
                         generated_url = output[0]
@@ -328,8 +448,6 @@ def generate_images(request):
 
 # views.py
 
-from .models import GeneratedImage, UserProfile, Preset, AnalyzedImage # AnalyzedImage 추가
-
 # ... (기존 코드들) ...
 
 @login_required(login_url='login')
@@ -340,14 +458,12 @@ def analysis_view(request):
     uploaded_file = request.FILES.get("target_image")
     if not uploaded_file:
         return render(request, "analysis.html", {"error": "이미지를 선택해주세요."})
-
-    # 1. 파일 저장 및 DB 레코드 생성
-    #analyzed_obj = AnalyzedImage(user=request.user, original_image=uploaded_file)
-    #analyzed_obj.save()
     
     file_path = default_storage.save(f"temp/analysis/{uploaded_file.name}", uploaded_file)
     full_path = default_storage.path(file_path)
     file_url = default_storage.url(file_path) # 템플릿에서 보여줄 URL
+    original_image_url = settings.MEDIA_URL + file_path
+
 
     analysis_text = ""
 
@@ -385,7 +501,7 @@ def analysis_view(request):
                 "openai/gpt-5",
                 input=
                     {"prompt": prompt,
-                        "image_input": f,
+                        "image_input": [f],
                         "system_prompt": system_prompt,
                         "reasoning_effort": reasoning_effort,
                         "verbosity": verbosity
@@ -414,7 +530,7 @@ def analysis_view(request):
 
     # 5. 결과 페이지로 이동 (분석된 옵션 값도 같이 넘김)
     return render(request, "result_analysis.html", {
-        "original_iamge_url":file_url,
+        "original_iamge_url":original_image_url,
         "analysis_text": lines,
         "parsed_data": parsed_data # 파싱된 데이터 전달
     })
@@ -439,41 +555,38 @@ def editing_view(request):
     # media/temp/edit/ 폴더에 저장
     file_path = default_storage.save(f"temp/edit/{uploaded_file.name}", uploaded_file)
     full_path = default_storage.path(file_path)
-    
     # 템플릿에 보여줄 원본 이미지 URL
-    original_image_url = default_storage.url(file_path) 
-    
+    original_image_url = settings.MEDIA_URL + file_path
     edited_image_url = None
-
     try:
         with open(full_path, "rb") as f:
             # ⭐ Replicate 모델 호출 (Instruct-Pix2Pix)
             output = client.run(
-                "timothybrooks/instruct-pix2pix:30c1d0b916a6f8efce20493f5d61ee27491ab2a60437c13c588468b9810ec23f",
+                "bytedance/seedream-4",
                 input={
-                    "image": f,
+                    "image_input": [f],
                     "prompt": user_prompt,
-                    "num_inference_steps": 20,
-                    "image_guidance_scale": 1.5,
                 }
             )
             
             # 결과 URL 추출 (헬퍼 함수 사용)
-            edited_image_url = get_output_url(output)
+            image_url = None
+            if isinstance(output, list): image_url = output[0]
+            elif isinstance(output, str): image_url = output
+            else: image_url = str(output)
 
+            image_url = str(image_url).strip()
     except Exception as e:
         print(f"Editing Error: {e}")
         return render(request, "editing.html", {"error": "이미지 편집 중 오류가 발생했습니다."})
     
     finally:
-        # (선택 사항) 임시 파일 삭제를 원하면 주석 해제
-        # default_storage.delete(file_path)
         pass
 
     # 3. 결과 페이지로 이동 (URL과 프롬프트만 전달)
     return render(request, "result_editing.html", {
         "original_image_url": original_image_url,
-        "edited_image_url": edited_image_url,
+        "edited_image_url": image_url,
         "prompt": user_prompt
     })
 
@@ -492,6 +605,7 @@ def video_view(request):
     # 파일 임시 저장
     file_path = default_storage.save(f"temp/video/{uploaded_file.name}", uploaded_file)
     full_path = default_storage.path(file_path)
+    file_obj = open(full_path, "rb")
     
     video_url = None
 
@@ -514,10 +628,6 @@ def video_view(request):
             audio_val = request.POST.get('video_generate_audio', 'false')
             generate_audio = True if audio_val == 'true' else False
 
-            # Replicate API 호출
-            # (Google Veo 등의 모델이 사용하는 입력 파라미터 구조에 맞게 전달)
-            # 만약 모델이 duration 등을 지원하지 않으면 input 딕셔너리에서 제외해야 할 수도 있습니다.
-            # 여기서는 사용자 의도대로 모든 옵션을 전달합니다.
             output = client.run(
                 video_model,
                 input={

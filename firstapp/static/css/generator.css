@@ -210,7 +210,7 @@
     width: 65px; 
     height: 65px;
     border-radius: 50%; /* 원형 버튼 */
-    background-color: #333; /* 와이어프레임의 어두운 색 */
+    background-color: #fd7e14; /* 와이어프레임의 어두운 색 */
     color: white;
     border: none;
     cursor: pointer;
@@ -222,9 +222,52 @@
     transition: background-color 0.2s ease, transform 0.2s ease;
 }
 .generate-btn:hover {
-    background-color: #000;
+    background-color: #e3690b;
     transform: scale(1.05);
 }
 .generate-btn span {
     margin-left: 4px; /* 재생 아이콘 정렬 미세 조정 */
+}
+
+#loadingOverlay {
+    display: none; /* 기본적으로 숨김 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* 검은 반투명 배경 */
+    z-index: 9999; /* 제일 위에 표시 */
+    
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    backdrop-filter: blur(5px); /* 배경 흐림 효과 */
+}
+
+#loadingOverlay h2 {
+    margin-top: 20px;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+#loadingOverlay p {
+    color: #ccc;
+    margin-top: 10px;
+}
+
+/* 빙글빙글 도는 스피너 */
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #007bff; /* 파란색 포인트 (생성 버튼 색과 맞춤) */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

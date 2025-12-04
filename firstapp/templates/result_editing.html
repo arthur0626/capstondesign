@@ -51,7 +51,7 @@
         padding: 15px 25px;
         border-radius: 10px;
         color: #333;
-        border-left: 4px solid #6f42c1; /* 보라색 포인트 */
+        border-left: 4px solid #fd7e14; /* 보라색 포인트 */
         text-align: left;
     }
 
@@ -72,13 +72,13 @@
     }
     
     .btn-download {
-        background-color: #6f42c1;
+        background-color: #fd7e14;
         color: white;
     }
-    .btn-download:hover { background-color: #59369e; transform: translateY(-2px); }
+    .btn-download:hover { background-color: #fd7e14; transform: translateY(-2px); }
     
     .btn-retry {
-        background-color: #e9ecef;
+        background-color: #ffffff;
         color: #333;
     }
     .btn-retry:hover { background-color: #dee2e6; transform: translateY(-2px); }
@@ -95,12 +95,12 @@
 
     <div class="comparison-wrapper">
         <div class="image-card">
-            <h3>(원본)</h3>
+            <h3>원본</h3>
             <img src="{{ original_image_url }}" class="result-img" alt="원본 이미지">
         </div>
 
         <div class="image-card">
-            <h3>(결과)</h3>
+            <h3>결과</h3>
             {% if edited_image_url %}
                 <img src="{{ edited_image_url }}" class="result-img" alt="편집된 이미지">
             {% else %}
@@ -112,11 +112,11 @@
     </div>
 
     <div class="btn-group">
-        <a href="{% url 'editing' %}" class="btn-action btn-retry">🔄 다시 편집하기</a>
+        <a href="{% url 'editing' %}" class="btn-action btn-retry">다시 편집하기</a>
         
         {% if edited_image_url %}
         <a href="{{ edited_image_url }}" download="edited_image.png" class="btn-action btn-download">
-            ⬇️ 결과 이미지 다운로드
+            결과 이미지 다운로드
         </a>
         {% endif %}
     </div>

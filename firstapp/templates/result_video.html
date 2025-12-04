@@ -11,7 +11,7 @@
 <div class="video-result-container">
     <div class="result-card">
         <div class="card-header">
-            <h2>🎥 영상 생성 결과</h2>
+            <h2>영상 생성 결과</h2>
         </div>
 
         <div class="content-wrapper">
@@ -32,12 +32,12 @@
         <div class="card-footer">
             <div class="button-group">
                 <a href="{% url 'video' %}" class="btn-action btn-retry">
-                    <span>🔄 다른 영상 만들기</span>
+                    <span>다른 영상 만들기</span>
                 </a>
 
                 {% if video_url %}
                 <a href="{{ video_url }}" download="generated_video.mp4" class="btn-action btn-download">
-                    <span>⬇️ 영상 다운로드</span>
+                    <span>영상 다운로드</span>
                 </a>
                 {% endif %}
             </div>

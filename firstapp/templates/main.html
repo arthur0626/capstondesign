@@ -6,115 +6,120 @@
 
 {% block title %}이미지 생성기 - My Project{% endblock %}
 {% block content %}
-<form method="POST" enctype="multipart/form-data" action="{% url 'main' %}" class="generator-form">
-    {% csrf_token %}
 
-    <div class="generator-container">
-        <div class="upload-column">
-            <label for="file-upload" class="upload-box" id="upload-label">
-                <div id="upload-prompt">
-                    <p class="upload-title">제품 이미지</p>
-                    <div class="upload-icon-box">
-                        <span class="upload-icon-text">이미지를 첨부해주세요</span>
+    <form method="POST" enctype="multipart/form-data" action="{% url 'main' %}" class="generator-form">
+        {% csrf_token %}
+
+        <div class="generator-container">
+            <div class="upload-column">
+                <label for="file-upload" class="upload-box" id="upload-label">
+                    <div id="upload-prompt">
+                        <p class="upload-title">제품 이미지</p>
+                        <div class="upload-icon-box">
+                            <span class="upload-icon-text">이미지를 첨부해주세요</span>
+                        </div>
                     </div>
-                </div>
-                <img id="image-preview" src="#" alt="미리보기" style="display: none;">
-            </label>
-            <input type="file" name="image" id="file-upload" accept="image/*" required>
-        </div>
+                    <img id="image-preview" src="#" alt="미리보기" style="display: none;">
+                </label>
+                <input type="file" name="image" id="file-upload" accept="image/*" required>
+            </div>
 
-        <div class="settings-column">
-            <div class="settings-card">
-                
-                <div class="form-grid">
+            <div class="settings-column">
+                <div class="settings-card">
                     
-                    <div class="form-group">
-                        <label for="product-type-select">제품 종류</label>
-                        <select name="product_type" id="product-type-select">
-                            <option value="소주" {% if settings.product_type == "소주" %}selected{% endif %}>소주</option>
-                            <option value="맥주" {% if settings.product_type == "맥주" %}selected{% endif %}>맥주</option>
-                            <option value="와인" {% if settings.product_type == "와인" %}selected{% endif %}>와인</option>
-                            <option value="위스키" {% if settings.product_type == "위스키" %}selected{% endif %}>위스키</option>
-                            <option value="막걸리" {% if settings.product_type == "막걸리" %}selected{% endif %}>막걸리</option>
-                            <option value="칵테일" {% if settings.product_type == "칵테일" %}selected{% endif %}>칵테일</option>
-                        </select>
+                    <div class="form-grid">
+                        
+                        <div class="form-group">
+                            <label for="product-type-select">제품 종류</label>
+                            <select name="product_type" id="product-type-select">
+                                <option value="소주" {% if settings.product_type == "소주" %}selected{% endif %}>소주</option>
+                                <option value="맥주" {% if settings.product_type == "맥주" %}selected{% endif %}>맥주</option>
+                                <option value="와인" {% if settings.product_type == "와인" %}selected{% endif %}>와인</option>
+                                <option value="위스키" {% if settings.product_type == "위스키" %}selected{% endif %}>위스키</option>
+                                <option value="막걸리" {% if settings.product_type == "막걸리" %}selected{% endif %}>막걸리</option>
+                                <option value="칵테일" {% if settings.product_type == "칵테일" %}selected{% endif %}>칵테일</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="theme-select">테마 선택</label>
+                            <select name="theme" id="theme-select">
+                                <option value="해변" {% if settings.theme == "해변" %}selected{% endif %}>해변</option>
+                                <option value="바" {% if settings.theme == "바" %}selected{% endif %}>바</option>
+                                <option value="집 (홈파티)" {% if settings.theme == "집 (홈파티)" %}selected{% endif %}>집 (홈파티)</option>
+                                <option value="포장마차" {% if settings.theme == "포장마차" %}selected{% endif %}>포장마차</option>
+                                <option value="고급 식당" {% if settings.theme == "고급 식당" %}selected{% endif %}>고급 식당</option>
+                                <option value="캠핑장" {% if settings.theme == "캠핑장" %}selected{% endif %}>캠핑장</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mood-select">이미지 분위기</label>
+                            <select name="mood" id="mood-select">
+                                <option value="따듯한" {% if settings.mood == "따듯한" %}selected{% endif %}>따듯한</option>
+                                <option value="차가운" {% if settings.mood == "차가운" %}selected{% endif %}>차가운</option>
+                                <option value="신나는" {% if settings.mood == "신나는" %}selected{% endif %}>신나는</option>
+                                <option value="세련된" {% if settings.mood == "세련된" %}selected{% endif %}>세련된</option>
+                                <option value="아련한" {% if settings.mood == "아련한" %}selected{% endif %}>아련한</option>
+                                <option value="역동적인" {% if settings.mood == "역동적인" %}selected{% endif %}>역동적인</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="placement-select">제품 위치</label>
+                            <select name="placement" id="placement-select">
+                                <option value="테이블 위에 놓인" {% if settings.placement == "테이블 위에 놓인" %}selected{% endif %}>테이블 위</option>
+                                <option value="사람이 들고 있는" {% if settings.placement == "사람이 들고 있는" %}selected{% endif %}>사람 손</option>
+                                <option value="바에 진열되어 있는" {% if settings.placement == "바에 진열되어 있는" %}selected{% endif %}>바에 진열</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prompt-input">제품 키워드</label>
+                            <input type="text" name="prompt" id="prompt-input" placeholder="예: 한국인 커플, 축제, 20대" value="{{ settings.prompt }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="model-select">모델 설정</label>
+                            <select name="model" id="model-select">
+                                <option value="black-forest-labs/flux-kontext-pro" {% if settings.model == "black-forest-labs/flux-kontext-pro" %}selected{% endif %}>Flux (범용)</option>
+                                <option value="nanobanana"{% if settings.model == "nanobanana" %}selected{% endif %}>nanobanana</option>
+                                <option value="custom_beach">custom_beach</option>
+                                <option value="custom_bar">custom_beach</option>
+                                <option value="custom_stylish">custom_beach</option>
+                                <option value="custom_bbq">custom_bbq</option>
+                                <option value="custom_pojangmacha">custom_pojangmacha</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ratio-select">이미지 비율</label>
+                            <select name="aspect_ratio" id="ratio-select">
+                                <option value="1:1" {% if settings.aspect_ratio == "1:1" %}selected{% endif %}>1:1</option>
+                                <option value="3:4" {% if settings.aspect_ratio == "3:4" %}selected{% endif %}>3:4</option>
+                                <option value="4:3" {% if settings.aspect_ratio == "4:3" %}selected{% endif %}>4:3</option>
+                                <option value="9:16" {% if settings.aspect_ratio == "9:16" %}selected{% endif %}>9:16</option>
+                                <option value="16:9" {% if settings.aspect_ratio == "16:9" %}selected{% endif %}>16:9</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="count-input">이미지 생성 수</label>
+                            <input type="number" name="count" id="count-input" min="1" max="10" value="{{ settings.count }}">
+                        </div>
+
+                        <div class="form-group span-2">
+                            <label for="extra-req-input">이미지 추가 요구사항</label>
+                            <textarea name="extra_requirements" id="extra-req-input" rows="3" placeholder="예: 배경을 흐릿하게(아웃포커싱), 조명은 어둡게, 벚꽃이 흩날리는 효과">{{ settings.extra_requirements }}</textarea>
+                        </div>
+
                     </div>
 
-                    <div class="form-group">
-                        <label for="theme-select">테마 선택</label>
-                        <select name="theme" id="theme-select">
-                            <option value="해변" {% if settings.theme == "해변" %}selected{% endif %}>해변</option>
-                            <option value="바" {% if settings.theme == "바" %}selected{% endif %}>바</option>
-                            <option value="집 (홈파티)" {% if settings.theme == "집 (홈파티)" %}selected{% endif %}>집 (홈파티)</option>
-                            <option value="포장마차" {% if settings.theme == "포장마차" %}selected{% endif %}>포장마차</option>
-                            <option value="고급 식당" {% if settings.theme == "고급 식당" %}selected{% endif %}>고급 식당</option>
-                            <option value="캠핑장" {% if settings.theme == "캠핑장" %}selected{% endif %}>캠핑장</option>
-                        </select>
+                    <div class="submit-btn-wrapper">
+                        <button type="submit" class="generate-btn" title="이미지 생성">
+                            <span>▶</span>
+                        </button>
                     </div>
-
-                    <div class="form-group">
-                        <label for="mood-select">이미지 분위기</label>
-                        <select name="mood" id="mood-select">
-                            <option value="따듯한" {% if settings.mood == "따듯한" %}selected{% endif %}>따듯한</option>
-                            <option value="차가운" {% if settings.mood == "차가운" %}selected{% endif %}>차가운</option>
-                            <option value="신나는" {% if settings.mood == "신나는" %}selected{% endif %}>신나는</option>
-                            <option value="세련된" {% if settings.mood == "세련된" %}selected{% endif %}>세련된</option>
-                            <option value="아련한" {% if settings.mood == "아련한" %}selected{% endif %}>아련한</option>
-                            <option value="역동적인" {% if settings.mood == "역동적인" %}selected{% endif %}>역동적인</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="placement-select">제품 위치</label>
-                        <select name="placement" id="placement-select">
-                            <option value="테이블 위에 놓인" {% if settings.placement == "테이블 위에 놓인" %}selected{% endif %}>테이블 위</option>
-                            <option value="사람이 들고 있는" {% if settings.placement == "사람이 들고 있는" %}selected{% endif %}>사람 손</option>
-                            <option value="바에 진열되어 있는" {% if settings.placement == "바에 진열되어 있는" %}selected{% endif %}>바에 진열</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="prompt-input">제품 키워드</label>
-                        <input type="text" name="prompt" id="prompt-input" placeholder="예: 한국인 커플, 축제, 20대" value="{{ settings.prompt }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="model-select">모델 설정</label>
-                        <select name="model" id="model-select">
-                            <option value="black-forest-labs/flux-kontext-pro" {% if settings.model == "black-forest-labs/flux-kontext-pro" %}selected{% endif %}>Flux (범용)</option>
-                            <option value="nanobanana"{% if settings.model == "nanobanana" %}selected{% endif %}>nanobanana</option>
-                            <option value="alcohol_beach">alcohol_beach</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="ratio-select">이미지 비율</label>
-                        <select name="aspect_ratio" id="ratio-select">
-                            <option value="1:1" {% if settings.aspect_ratio == "1:1" %}selected{% endif %}>1:1</option>
-                            <option value="3:4" {% if settings.aspect_ratio == "3:4" %}selected{% endif %}>3:4</option>
-                            <option value="4:3" {% if settings.aspect_ratio == "4:3" %}selected{% endif %}>4:3</option>
-                            <option value="9:16" {% if settings.aspect_ratio == "9:16" %}selected{% endif %}>9:16</option>
-                            <option value="16:9" {% if settings.aspect_ratio == "16:9" %}selected{% endif %}>16:9</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="count-input">이미지 생성 수</label>
-                        <input type="number" name="count" id="count-input" min="1" max="10" value="{{ settings.count }}">
-                    </div>
-
-                    <div class="form-group span-2">
-                        <label for="extra-req-input">이미지 추가 요구사항</label>
-                        <textarea name="extra_requirements" id="extra-req-input" rows="3" placeholder="예: 배경을 흐릿하게(아웃포커싱), 조명은 어둡게, 벚꽃이 흩날리는 효과">{{ settings.extra_requirements }}</textarea>
-                    </div>
-
-                </div>
-
-                <div class="submit-btn-wrapper">
-                    <button type="submit" class="generate-btn" title="이미지 생성">
-                        <span>▶</span>
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -167,21 +172,21 @@ document.addEventListener('DOMContentLoaded', () => {
             "소주": {
                 theme: "포장마차",
                 mood: "따듯한",
-                placement: "테이블 위",
+                placement: "테이블 위에 놓인",
                 model: "flux",       // 소주는 사실적인 Flux가 어울림
                 aspect_ratio: "4:3"  // 인스타 피드용 비율
             },
             "맥주": {
                 theme: "해변",
                 mood: "신나는",
-                placement: "사람 손", /* 맥주는 짠! 하는 느낌 */
-                model: "alcohol_beach", /* 맥주는 해변 특화 모델 */
+                placement: "사람 사람이 들고 있는", /* 맥주는 짠! 하는 느낌 */
+                model: "custom_beach", /* 맥주는 해변 특화 모델 */
                 aspect_ratio: "9:16" /* 틱톡/릴스 스타일 */
             },
             "와인": {
                 theme: "고급 식당",
                 mood: "세련된",
-                placement: "테이블 위",
+                placement: "테이블 위에 놓인",
                 model: "nanobanana", /* 고급스러운 느낌 */
                 aspect_ratio: "1:1"
             },
@@ -195,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             "막걸리": {
                 theme: "집 (홈파티)", /* 혹은 전통적인 느낌 */
                 mood: "따듯한",
-                placement: "테이블 위",
+                placement: "테이블 위에 놓인",
                 model: "flux",
                 aspect_ratio: "4:3"
             },
@@ -236,5 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
+    
 </script>
 {% endblock %}
